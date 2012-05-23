@@ -1,0 +1,143 @@
+<!doctype html>
+<!-- Conditional comment for mobile ie7 blogs.msdn.com/b/iemobile/ -->
+<!--[if IEMobile 7 ]>    <html class="no-js iem7" lang="en"> <![endif]-->
+<!--[if (gt IEMobile 7)|!(IEMobile)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+
+  <title></title>
+  <meta name="description" content="">
+
+  <!-- Mobile viewport optimization h5bp.com/ad -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width">
+
+  <!-- Home screen icon  Mathias Bynens mathiasbynens.be/notes/touch-icons --> 
+  <!-- For third generation iPad Retina Display -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/touch/apple-touch-icon-144x144-precomposed.png" />
+  <!-- For iPhone 4 with high-resolution Retina display: -->
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/touch/apple-touch-icon-114x114-precomposed.png" />
+  <!-- For first-generation iPad: -->
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/touch/apple-touch-icon-72x72-precomposed.png" />
+  <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+  <link rel="apple-touch-icon-precomposed" href="img/touch/apple-touch-icon-57x57-precomposed.png" />
+  <!-- For nokia devices: -->
+  <link rel="shortcut icon" href="img/touch/apple-touch-icon.png" />
+
+  <!-- iOS web app, delete if not needed. https://github.com/h5bp/mobile-boilerplate/issues/94 -->
+  <!-- <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
+  <!-- <script>(function(){var p,l,r=window.devicePixelRatio;if(navigator.platform==="iPad"){p=r===2?"img/startup/startup-tablet-portrait-retina.png":"img/startup/startup-tablet-portrait.png";l=r===2?"img/startup/startup-tablet-landscape-retina.png":"img/startup/startup-tablet-landscape.png";document.write('<link rel="apple-touch-startup-image" href="'+l+'" media="screen and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="'+p+'" media="screen and (orientation: portrait)"/>');}else{p=r===2?"img/startup/startup-retina.png":"img/startup/startup.png";document.write('<link rel="apple-touch-startup-image" href="'+p+'"/>');}})()</script> -->
+  
+  <!-- The script prevents links from opening in mobile safari. https://gist.github.com/1042026 -->
+  <!-- <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script> -->
+  
+  <!-- Mobile IE allows us to activate ClearType technology for smoothing fonts for easy reading -->
+  <meta http-equiv="cleartype" content="on">
+
+  <!-- more tags for your 'head' to consider h5bp.com/d/head-Tips -->
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
+  <script src="js/libs/modernizr-2.0.6.min.js"></script>
+
+  <script src="js/libs/jquery-1.7.1.min.js"></script>
+  <script src="js/libs/json2.js"></script>
+  <script src="js/libs/underscore.js"></script>
+  <script src="js/libs/backbone.js"></script>
+  <script src="js/libs/backbone.localStorage.js"></script>
+  <script src="js/tinybo.js"></script>
+  <script>
+    alert('before login');
+    function login() {
+      sina.weibo.init({
+        appKey : "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
+        appSecret : "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
+        redirectUrl : "http://mobilecloudweibo.sinaapp.com"
+        }, function(response) {
+        alert("init: " + response);
+
+        sina.weibo.login(function(access_token, expires_in) {
+          if (access_token && expires_in) {
+            alert('logged in');
+            localStorage.setItem('access_t', access_token);
+            } else {
+            alert('not logged in');
+          }
+        });
+
+        }, function(msg){
+        alert(msg);
+      });
+    }
+
+    function refresh() {
+      //new StatusesView;
+    }
+  </script>
+
+  <phonegap></phonegap>
+</head>
+<body>
+
+  <div id="container">
+    <header>
+      <button onclick="login();">登录</button>
+      <button onclick="refresh();">刷新</button>
+    </header>
+    <div id="main" role="main">
+      <div id="statuses">
+        <ul id="status-list"></ul>
+      </div>
+    </div>
+
+    <footer>
+
+    </footer>
+  </div> <!--! end of #container -->
+
+  <!-- Templates -->
+  <script type="text/template" id="status-item-template">
+    <div>
+      <div>
+        text: <%= text %><br>
+        source: <%= source %><br>
+        created_at: <%= created_at %><br>
+      </div>
+      <div>
+      </div>
+    </div>
+  </script>
+
+  <!-- JavaScript at the bottom for fast page loading -->
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if necessary -->
+  <!--
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+  -->
+
+  <!-- scripts concatenated and minified via ant build script -->
+  <script src="js/helper.js"></script>
+  <!-- end concatenated and minified scripts-->
+
+  <!-- Debugger - remove for production -->
+  <!-- <script src="https://getfirebug.com/firebug-lite.js"></script> -->
+
+  <!-- Asynchronous Google Analytics snippet. Change UA-XXXXX-X to be your site's ID.
+       mathiasbynens.be/notes/async-analytics-snippet -->
+  <script>
+    /*
+    var _gaq=[["_setAccount","UA-XXXXX-X"],["_trackPageview"]];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
+    g.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js";
+    s.parentNode.insertBefore(g,s)}(document,"script"));
+    */
+  </script>
+
+</body>
+</html>
