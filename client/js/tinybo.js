@@ -3,6 +3,11 @@ var statusesView;
 var curPage = 1;
 var countOnePage = 20;
 
+$.ajaxSetup({
+  // Disable caching of AJAX responses
+  cache : false
+});
+
 function login() {
   sina.weibo.init({
     appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
@@ -135,7 +140,11 @@ function deviceReady() {
         text: "",
         source: "新浪微博",
         reposts_count: 0,
-        comments_count: 0
+        comments_count: 0,
+        user: {
+          screen_name: "",
+          profile_image_url: ""
+        }
       },
 
       initialize: function() {}
@@ -188,6 +197,7 @@ function deviceReady() {
       },
 
       render: function() {
+        console.log("this.model: " + this.model.toJSON());
         $(this.el).html(this.template(this.model.toJSON()));
         return this;
       }

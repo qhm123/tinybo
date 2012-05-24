@@ -55,6 +55,7 @@
     <div id="header" data-role="header" data-position="fixed">
       <a href="#" onclick="login();">登陆</a>
       <h1>tiny bo</h1>
+      <a href="#send">登陆</a>
     </div>
 
     <div id="wrapper" data-role="content">
@@ -85,15 +86,13 @@
 
   <!-- Templates -->
   <script type="text/template" id="status-item-template">
-    <div>
-      <div>
-        text: <%= text %><br>
-        source: <%= source %><br>
-        created_at: <%= created_at %><br>
-      </div>
-      <div>
-      </div>
-    </div>
+      <a href="#">
+        <img src='<%= user.profile_image_url %>' />
+        <h4><%= user.screen_name %></h4>
+        <p><%= text %></p>
+        source: <%= source %>
+        <p class="ui-li-aside"><%= created_at %></p>
+      </a>
   </script>
 
   <!-- JavaScript at the bottom for fast page loading -->
