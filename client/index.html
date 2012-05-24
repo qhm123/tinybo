@@ -26,6 +26,13 @@
   <link rel="stylesheet" href="css/tinybo.css">
   <link rel="stylesheet" href="css/iscroll.css">
 
+  <script>
+    window.onerror = function(message, url, line) {
+      console.log("onerror: " + JSON.stringify(message) + "\n url: " + url + "\n line: " + line);
+      return true;
+    };
+  </script>
+
   <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
   <script src="js/libs/modernizr-3.0.6.min.js"></script>
 

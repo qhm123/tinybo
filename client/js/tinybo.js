@@ -1,5 +1,7 @@
 var statuses;
+var statusesView;
 var curPage = 1;
+var countOnePage = 20;
 
 function login() {
   sina.weibo.init({
@@ -23,15 +25,12 @@ function login() {
   });
 }
 
-function refresh() {
-  var statusesView = new StatusesView();
-}
-
 function pullDownAction() {
   curPage = 1;
   myData = {
     access_token: localStorage.getItem('access_t'),
-    page: curPage
+    page: curPage,
+    count: countOnePage
   };
 
   statuses.fetch({data: myData});
@@ -40,10 +39,17 @@ function pullDownAction() {
 function pullUpAction() {
   myData = {
     access_token: localStorage.getItem('access_t'),
-    page: curPage
+    page: curPage,
+    count: countOnePage
   };
 
-  statuses.fetch({add: true, data: myData});
+  statuses.fetch({add: true,
+                 data: myData,
+                 success: function(status) {
+                   console.log("fetch success");
+                   statusesView.render();
+                 }
+            });
 }
 
 var myScroll,
@@ -94,6 +100,7 @@ function initIScroll() {
     },
     onScrollEnd: function () {
       if (pullDownEl.className.match('flip')) {
+        console.log('flip');
         pullDownEl.className = 'loading';
         pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Loading...';        
         pullDownAction(); // Execute custom function (ajax call?)
@@ -145,8 +152,7 @@ function deviceReady() {
         console.log("options: " + JSON.stringify(options.data));
 
         sina.weibo.get("https://api.weibo.com/2/statuses/home_timeline.json",
-                       {access_token:"2.0062PdpBvw3ugD50834a01aeCp85HC",page:1}
-                       ,
+                       options.data,
                        function(response) {
                          options.success(JSON.parse(response));
                          console.log("sync success");
@@ -160,6 +166,8 @@ function deviceReady() {
         curPage++;
 
         console.log(JSON.stringify(response));
+        //response.each(statusesView.addOne);
+
         return response.statuses;
       }
       //localStorage: new Store("statuses-backbone")
@@ -199,7 +207,8 @@ function deviceReady() {
         curPage = 1;
         myData = {
           access_token: localStorage.getItem('access_t'),
-          page: curPage
+          page: curPage,
+          count: countOnePage
         };
 
         statuses.fetch({data: myData});
@@ -207,11 +216,11 @@ function deviceReady() {
 
       render: function() {
         this.$('#status-list').listview('refresh');
-
-        initIScroll();
+        myScroll.refresh();
       },
 
       addOne: function(status) {
+        console.log("addOne");
         var view = new StatusView({
           model: status
         });
@@ -224,8 +233,9 @@ function deviceReady() {
       }
     });
 
-    var statusesView = new StatusesView();
+    statusesView = new StatusesView();
 
+    initIScroll();
 
   })();
 
