@@ -1,11 +1,26 @@
+/*
+#body,ul,li {
+  padding:0;
+  margin:0;
+  border:0;
+}
+
+#scroller li {
+  padding:10px 10px;
+  border-bottom:1px solid #ccc;
+  border-top:1px solid #fff;
+  background: white;
+}
+*/
+
 #header {
-  sition:absolute; z-index:2;
+  position:absolute; z-index:2;
   top:0; left:0;
   width:100%;
 }
 
 #footer {
-  position:absolute !important;
+  position:absolute !important; z-index:2;
   bottom:0 !important; 
   left:0 !important;
   width:100%;
@@ -14,15 +29,15 @@
 #wrapper {
   position:absolute; 
   z-index:1;
-  top:92px; 
-  bottom:50px; 
+  top:40px; 
+  bottom:52px; 
   left:0;
   width:100%;
   background:#aaa;
   overflow:auto;
 }
 
-#statuses {
+#scroller {
   position:absolute; z-index:1;
   -webkit-tap-highlight-color:rgba(0,0,0,0);
   width:100%;
@@ -38,17 +53,7 @@
 }
 
 #statuses li {
-  padding:0 10px;
-  /*
-  height:40px;
-  line-height:40px;
-  */
-  border-bottom:1px solid #ccc;
-  border-top:1px solid #fff;
-  /*
-  background-color:#fafafa;
-  font-size:14px;
-  */
+  padding:10px 10px;
 }
 
 /*************************/
@@ -69,9 +74,7 @@
 {
   display:block; float:left;
   width:40px; height:40px;
-  /*
-  background:url(../img/pull-icon-2x.png) 0 0 no-repeat;
-  */
+  background:url(/img/pull-icon-2x.png) 0 0 no-repeat;
   -webkit-background-size:40px 80px; background-size:40px 80px;
   -webkit-transition-property:-webkit-transform;
   -webkit-transition-duration:250ms;  
@@ -86,7 +89,6 @@
 #pullDown.flip .pullDownIcon {
   -webkit-transform:rotate(-180deg) translateZ(0);
 }
-
 
 #pullDown.loading .pullDownIcon
 {
