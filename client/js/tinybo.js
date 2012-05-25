@@ -120,8 +120,6 @@ function initIScroll() {
   $('#wrapper').css({
     "padding": 0
   });
-
-  alert("iscorr");
 }
 
 document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
@@ -141,10 +139,12 @@ function deviceReady() {
         source: "新浪微博",
         reposts_count: 0,
         comments_count: 0,
+        thumbnail_pic: "",
         user: {
           screen_name: "",
           profile_image_url: ""
-        }
+        },
+        retweeted_status: null
       },
 
       initialize: function() {}
@@ -225,6 +225,7 @@ function deviceReady() {
       },
 
       render: function() {
+        console.log("render");
         this.$('#status-list').listview('refresh');
         myScroll.refresh();
       },
@@ -238,6 +239,7 @@ function deviceReady() {
       },
 
       addAll: function() {
+        this.$('#status-list').empty();
         console.log('addAll: ' + statuses.length);
         statuses.each(this.addOne);
       }

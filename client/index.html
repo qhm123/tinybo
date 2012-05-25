@@ -45,6 +45,7 @@
   <script src="js/libs/backbone.localStorage.js"></script>
 
   <script src="js/libs/iscroll.js"></script>
+  <script src="js/utils.js"></script>
 
   <script src="http://phonegapjs.sinaapp.com/phonegap.android-1.5.0.js"></script>
   <script src="js/tinybo.js"></script>
@@ -86,13 +87,21 @@
 
   <!-- Templates -->
   <script type="text/template" id="status-item-template">
-      <a href="#">
+    <a href="#">
         <img src='<%= user.profile_image_url %>' />
-        <h4><%= user.screen_name %></h4>
+        <h3><%= user.screen_name %></h3>
         <p><%= text %></p>
-        source: <%= source %>
-        <p class="ui-li-aside"><%= created_at %></p>
-      </a>
+        <p class="ui-li-aside"><%= (new Date(created_at)).format("dd日 hh:mm:ss") %></p>
+        <% if (thumbnail_pic) { %>
+          <p style="margin-top:6px;"><img src='<%= thumbnail_pic %>' /></p>
+        <% } %>
+        <% if (retweeted_status) { %>
+          <div style="background-color:#eee;margin-top:8px;">
+          <p style="padding:10px;padding-bottom:0;"><span style="color:blue;">@<%= retweeted_status.user.screen_name %></span>(<%= (new Date(retweeted_status.created_at)).format("dd日 hh:mm:ss") %>): <%= text %></p>
+          <p style="padding:10px;"><img src='<%= retweeted_status.thumbnail_pic %>' /></p>
+          </div>
+        <% } %>
+    </a>
   </script>
 
   <!-- JavaScript at the bottom for fast page loading -->
