@@ -2,73 +2,72 @@ var statuses;
 var statusesView;
 var curPage = 1;
 var countOnePage = 20;
+var user;
 
 $.ajaxSetup({
   // Disable caching of AJAX responses
   cache : false
 });
 
-function login() {
-  sina.weibo.init({
-    appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
-    appSecret: "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
-    redirectUrl: "http://mobilecloudweibo.sinaapp.com"
-  }, function(response) {
-    alert("init: " + response);
-
-    sina.weibo.login(function(access_token, expires_in) {
-      if (access_token && expires_in) {
-        alert('logged in');
-        localStorage.setItem('access_t', access_token);
-      } else {
-        alert('not logged in');
-      }
-    });
-
-  }, function(msg) {
-    alert(msg);
-  });
-}
-
 function pullDownAction() {
   curPage = 1;
-  myData = {
-    access_token: localStorage.getItem('access_t'),
-    page: curPage,
-    count: countOnePage
-  };
 
-  statuses.fetch({data: myData});
+  if(user.get("token")) {
+    url = "https://api.weibo.com/2/statuses/home_timeline.json";
+    myData = {
+      access_token: user.get("token"),
+      page: curPage,
+      count: countOnePage
+    };
+  } else {
+    url = "https://api.weibo.com/2/statuses/public_timeline.json";
+    myData = {
+      source: "3150277999",
+      page: curPage,
+      count: countOnePage
+    };
+  }
+
+  statuses.fetch({url: url, data: myData});
 }
 
 function pullUpAction() {
-  myData = {
-    access_token: localStorage.getItem('access_t'),
-    page: curPage,
-    count: countOnePage
-  };
+  if(user.get("token")) {
+    url = "https://api.weibo.com/2/statuses/home_timeline.json";
+    myData = {
+      access_token: user.get("token"),
+      page: curPage,
+      count: countOnePage
+    };
+  } else {
+    //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
+    url = "https://api.weibo.com/2/statuses/public_timeline.json";
+    myData = {
+      source: "3150277999",
+      page: curPage,
+      count: countOnePage
+    };
+  }
 
-  statuses.fetch({add: true,
+  statuses.fetch({url: url,
                  data: myData,
+                 add: true,
                  success: function(status) {
-                   console.log("fetch success");
                    statusesView.render();
                  }
-            });
+  });
 }
 
 var myScroll,
-pullDownEl, pullDownOffset,
-pullUpEl, pullUpOffset,
-generatedCount = 0;
+  pullDownEl, pullDownOffset,
+  pullUpEl, pullUpOffset,
+  generatedCount = 0;
 
 function initIScroll() {
   pullDownEl = document.getElementById('pullDown');
   pullDownOffset = pullDownEl.offsetHeight;
   pullUpEl = document.getElementById('pullUp'); 
   pullUpOffset = pullUpEl.offsetHeight;
-
-  //myScroll = new iScroll('wrapper');
 
   myScroll = new iScroll('wrapper', {
     //useTransition: true,
@@ -83,7 +82,6 @@ function initIScroll() {
       }
     },
     onScrollMove: function () {
-      console.log('onScrollMove');
       if (this.y > 5 && !pullDownEl.className.match('flip')) {
         pullDownEl.className = 'flip';
         pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
@@ -101,7 +99,6 @@ function initIScroll() {
         pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
         this.maxScrollY = pullUpOffset;
       }
-      console.log('onScrollMove end');
     },
     onScrollEnd: function () {
       if (pullDownEl.className.match('flip')) {
@@ -130,6 +127,17 @@ function deviceReady() {
 
     $.mobile.initializePage();
 
+    var User = Backbone.Model.extend({
+
+      defaults: {
+        token: localStorage.getItem('access_token'),
+        expires_in: localStorage.getItem('expires_in')
+      }
+
+    });
+
+    user = new User();
+
     var Status = Backbone.Model.extend({
 
       defaults: {
@@ -154,13 +162,11 @@ function deviceReady() {
 
       model: Status,
 
-      url: 'https://api.weibo.com/2/statuses/home_timeline.json',
-
       sync: function(method, model, options) {
         options || (options = {});
         console.log("options: " + JSON.stringify(options.data));
 
-        sina.weibo.get("https://api.weibo.com/2/statuses/home_timeline.json",
+        sina.weibo.get(options.url,
                        options.data,
                        function(response) {
                          options.success(JSON.parse(response));
@@ -214,14 +220,17 @@ function deviceReady() {
         statuses.bind('reset', this.addAll);
         statuses.bind('all', this.render);
 
+        /*
         curPage = 1;
+        url = "https://api.weibo.com/2/statuses/home_timeline.json";
         myData = {
-          access_token: localStorage.getItem('access_t'),
+          access_token: user.token,
           page: curPage,
           count: countOnePage
         };
 
-        statuses.fetch({data: myData});
+        statuses.fetch({url: url, data: myData});
+        */
       },
 
       render: function() {
@@ -246,6 +255,118 @@ function deviceReady() {
     });
 
     statusesView = new StatusesView();
+
+    var HeaderView = Backbone.View.extend({
+
+      el: $("#header"),
+
+      events: {
+        "click #loginOrSend": "loginOrSend",
+        "click #about": "about"
+      },
+
+      initialize: function() {
+        console.log(JSON.stringify(this.model));
+        this.model.bind('change', this.render, this);
+
+        this.render();
+      },
+
+      render: function() {
+        curPage = 1;
+
+        console.log("header render");
+        console.log("this.model: " + this.model + ", json: " + ", str: " + JSON.stringify(this.model));
+        console.log("this.model.token: " + this.model.get("token"));
+        if(this.model.get("token")) {
+          this.$("#loginOrSend .ui-btn-text").text("发微博");
+
+          url = "https://api.weibo.com/2/statuses/home_timeline.json";
+          myData = {
+            access_token: user.get("token"),
+            page: curPage,
+            count: countOnePage
+          };
+        } else {
+          this.$("#loginOrSend .ui-btn-text").text("登陆");
+
+          url = "https://api.weibo.com/2/statuses/public_timeline.json";
+          //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
+          myData = {
+            source: "3150277999",
+            page: curPage,
+            count: countOnePage
+          };
+        }
+
+        statuses.fetch({url: url, data: myData});
+      },
+
+      loginOrSend: function() {
+        console.log("this.model.token: " + this.model.get("token"));
+        if(this.model.get("token")) {
+          this.send();
+        } else {
+          this.login();
+        }
+      },
+
+      send: function() {
+        /*
+        sina.weibo.post('https://api.weibo.com/2/statuses/update.json',
+                        {
+                          access_token: user.token,
+                          status: msg
+                        },function(data) {
+                          alert('发送成功' + data);
+                        },function() {
+                          alert('发送失败');
+                        });
+                       */
+      },
+
+      about: function() {
+        alert("haha!");
+      },
+
+      login: function() {
+
+        var appView = this;
+
+        sina.weibo.init({
+          appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
+          appSecret: "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
+          redirectUrl: "http://mobilecloudweibo.sinaapp.com"
+        }, function(response) {
+          console.log("init: " + response);
+
+          sina.weibo.login(function(access_token, expires_in) {
+            if (access_token && expires_in) {
+              //localStorage.setItem('access_token', access_token);
+              //localStorage.setItem('expires_in', expires_in);
+              try {
+              appView.model.set({
+                token: access_token,
+                expires_in: expires_in
+              });
+              }catch(e) {
+                console.log("e: " + e);
+              }
+              //console.log("ret: " + ret);
+              alert('登陆成功');
+            } else {
+              alert('登陆失败，请稍后再试');
+            }
+          });
+
+        }, function(msg) {
+          alert(msg);
+        });
+
+      }
+    });
+
+    var headerView = new HeaderView({model: user});
 
     initIScroll();
 

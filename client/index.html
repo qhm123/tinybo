@@ -54,9 +54,9 @@
 
   <div data-role="page">
     <div id="header" data-role="header" data-position="fixed">
-      <a href="#" onclick="login();">登陆</a>
+      <a id="loginOrSend" href="#">登陆</a>
       <h1>tiny bo</h1>
-      <a href="#send">登陆</a>
+      <a id="about" href="#">关于</a>
     </div>
 
     <div id="wrapper" data-role="content">
@@ -103,6 +103,18 @@
         <% } %>
     </a>
   </script>
+
+  <!--
+  <script type="text/template" id="header-template">
+    <% if (user.token) { %>
+      <a id="send" href="#">发微博</a>
+    <% else %>
+      <a id="login" href="#">登陆</a>
+    <% } %>
+    <h1>tiny bo</h1>
+    <a id="about" href="#">关于</a>
+  </script>
+  -->
 
   <!-- JavaScript at the bottom for fast page loading -->
 
