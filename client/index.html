@@ -28,7 +28,7 @@
 
   <script>
     window.onerror = function(message, url, line) {
-      console.log("onerror: " + JSON.stringify(message) + "\n url: " + url + "\n line: " + line);
+      console.log("onerror: " + message + "\n url: " + url + "\n line: " + line);
       return true;
     };
   </script>
@@ -49,11 +49,14 @@
 
   <script src="http://phonegapjs.sinaapp.com/phonegap.android-1.5.0.js"></script>
   <script src="js/tinybo.js"></script>
+  <!--
+  <script src="http://weinre.tools.sinaapp.com/target/target-script-min.js#qhm123"></script>
+  -->
 </head>
 <body>
 
   <div data-role="page">
-    <div id="header" data-role="header" data-position="fixed">
+    <div id="header" data-role="header" data-position="fixed" data-id="foo">
       <a id="loginOrSend" href="#">登陆</a>
       <h1>tiny bo</h1>
       <a id="about" href="#">关于</a>
@@ -73,17 +76,39 @@
       </div>
     </div>
 
-    <div id="footer" data-role="footer" data-position="fixed">
+    <div id="footer" data-role="footer" data-position="fixed" data-id="fool">
       <div data-role="navbar">
         <ul>
-          <li><a href="#" onclick="console.log('home');" id="home" class="ui-btn-active" data-icon="custom">首页</a></li>
-          <li><a href="#" onclick="console.log('recommend');" id="recommend" data-icon="custom">信息</a></li>
-          <li><a href="#" onclick="console.log('me');" id="me" data-icon="custom">我的资料</a></li>
+          <li><a href="#home" id="home" class="ui-btn-active" data-icon="custom">首页</a></li>
+          <li><a href="#message" id="recommend" data-icon="custom">信息</a></li>
+          <li><a href="#me" id="me" data-icon="custom">我的资料</a></li>
         </ul>
       </div>
     </div>
 
   </div>
+
+  <!--
+  <div data-role="page" id="message">
+    <div data-role="header" data-position="fixed" data-id="foo">
+      <h1>messages</h1>
+    </div>
+
+    <div data-role="content">
+      sdfasdf
+    </div>
+
+    <div data-role="footer" data-position="fixed" data-id="fool">
+      <div data-role="navbar">
+        <ul>
+          <li><a href="#home" data-icon="custom">首页</a></li>
+          <li><a href="#message" class="ui-btn-active" data-icon="custom">信息</a></li>
+          <li><a href="#me" data-icon="custom">我的资料</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  -->
 
   <!-- Templates -->
   <script type="text/template" id="status-item-template">

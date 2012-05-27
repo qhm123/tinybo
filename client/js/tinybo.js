@@ -127,6 +127,17 @@ function deviceReady() {
 
     $.mobile.initializePage();
 
+    /*
+    $( document ).delegate("#home", "pageinit", function() {
+        alert('A page with an id of "home" was just created by jQuery Mobile!');
+        deviceReady();
+    });
+
+    $( document ).delegate("#message", "pageinit", function() {
+        alert('A page with an id of "message" was just created by jQuery Mobile!');
+    });
+    */
+
     var User = Backbone.Model.extend({
 
       defaults: {
@@ -237,6 +248,9 @@ function deviceReady() {
         console.log("render");
         this.$('#status-list').listview('refresh');
         myScroll.refresh();
+
+        //$.mobile.pageContainer.page({ domCache: true });
+        //console.log("cache");
       },
 
       addOne: function(status) {
@@ -342,17 +356,12 @@ function deviceReady() {
 
           sina.weibo.login(function(access_token, expires_in) {
             if (access_token && expires_in) {
-              //localStorage.setItem('access_token', access_token);
-              //localStorage.setItem('expires_in', expires_in);
-              try {
+              localStorage.setItem('access_token', access_token);
+              localStorage.setItem('expires_in', expires_in);
               appView.model.set({
                 token: access_token,
                 expires_in: expires_in
               });
-              }catch(e) {
-                console.log("e: " + e);
-              }
-              //console.log("ret: " + ret);
               alert('登陆成功');
             } else {
               alert('登陆失败，请稍后再试');
