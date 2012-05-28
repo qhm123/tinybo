@@ -127,17 +127,6 @@ function deviceReady() {
 
     $.mobile.initializePage();
 
-    /*
-    $( document ).delegate("#home", "pageinit", function() {
-        alert('A page with an id of "home" was just created by jQuery Mobile!');
-        deviceReady();
-    });
-
-    $( document ).delegate("#message", "pageinit", function() {
-        alert('A page with an id of "message" was just created by jQuery Mobile!');
-    });
-    */
-
     var User = Backbone.Model.extend({
 
       defaults: {
@@ -268,7 +257,7 @@ function deviceReady() {
       }
     });
 
-    statusesView = new StatusesView();
+    //statusesView = new StatusesView();
 
     var HeaderView = Backbone.View.extend({
 
@@ -375,9 +364,65 @@ function deviceReady() {
       }
     });
 
-    var headerView = new HeaderView({model: user});
+    //var headerView = new HeaderView({model: user});
 
-    initIScroll();
+    window.HomeView = Backbone.View.extend({
+
+      template:_.template($('#home-page').html()),
+
+      render:function (eventName) {
+        $(this.el).html(this.template());
+        return this;
+      }
+    });
+
+    var AppRouter = Backbone.Router.extend({
+
+      routers: {
+        "": "home",
+        "post_status": "post_status",
+        "message": "message"
+      },
+
+      initialize: function() {
+        this.firstPage = true;
+      },
+
+      home: function() {
+        console.log('#home');
+        this.changePage(new HomeView());
+
+        statusesView = new StatusesView();
+        var headerView = new HeaderView({model: user});
+
+        initIScroll();
+      },
+
+      post_status: function() {
+      },
+
+      message: function() {
+      },
+
+      changePage: function() {
+        $(page.el).attr('data-role', 'page');
+        page.render();
+        $('body').append($(page.el));
+        var transition = $.mobile.defaultPageTransition;
+        // We don't want to slide the first page
+        if (this.firstPage) {
+          transition = 'none';
+          this.firstPage = false;
+        }
+        $.mobile.changePage($(page.el), {changeHash:false, transition: transition});
+      }
+
+    });
+
+    console.log("new AppRouter");
+    app = new AppRouter();
+    console.log("history start");
+    Backbone.history.start();
 
   })();
 
