@@ -70,7 +70,7 @@
   color:#888;
 }
 
-#pullDown .pullDownIcon
+#pullDown .pullDownIcon, #pullUp .pullUpIcon
 {
   display:block; float:left;
   width:40px; height:40px;
@@ -85,12 +85,19 @@
   -webkit-transform:rotate(0deg) translateZ(0);
 }
 
+#pullUp .pullUpIcon  {
+  -webkit-transform:rotate(-180degdeg) translateZ(0);
+}
 
 #pullDown.flip .pullDownIcon {
   -webkit-transform:rotate(-180deg) translateZ(0);
 }
 
-#pullDown.loading .pullDownIcon
+#pullUp.flip .pullUpIcon {
+  -webkit-transform:rotate(0deg) translateZ(0);
+}
+
+#pullDown.loading .pullDownIcon, #pullUp.loading .pullUpIcon
 {
   background-position:0 100%;
   -webkit-transform:rotate(0deg) translateZ(0);
