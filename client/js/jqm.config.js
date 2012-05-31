@@ -3,7 +3,7 @@ $(document).bind("mobileinit", function () {
     $.mobile.linkBindingEnabled = false;
     $.mobile.hashListeningEnabled = false;
     $.mobile.pushStateEnabled = false;
-    $.mobile.autoInitializePage = false;
+    //$.mobile.autoInitializePage = false;
     $.mobile.buttonMarkup.hoverDelay = 200;
 
     // Remove page from DOM when it's being replaced
