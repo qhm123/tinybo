@@ -1,118 +1,6 @@
-var statuses;
-var statusesView;
-var curPage = 1;
-var countOnePage = 20;
 var user;
 
-$.ajaxSetup({
-  // Disable caching of AJAX responses
-  cache : false
-});
-
-function pullDownAction() {
-  curPage = 1;
-
-  if(user.get("token")) {
-    url = "https://api.weibo.com/2/statuses/home_timeline.json";
-    myData = {
-      access_token: user.get("token"),
-      page: curPage,
-      count: countOnePage
-    };
-  } else {
-    url = "https://api.weibo.com/2/statuses/public_timeline.json";
-    myData = {
-      source: "3150277999",
-      page: curPage,
-      count: countOnePage
-    };
-  }
-
-  statuses.fetch({url: url, data: myData});
-}
-
-function pullUpAction() {
-  if(user.get("token")) {
-    url = "https://api.weibo.com/2/statuses/home_timeline.json";
-    myData = {
-      access_token: user.get("token"),
-      page: curPage,
-      count: countOnePage
-    };
-  } else {
-    //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
-    url = "https://api.weibo.com/2/statuses/public_timeline.json";
-    myData = {
-      source: "3150277999",
-      page: curPage,
-      count: countOnePage
-    };
-  }
-
-  statuses.fetch({url: url,
-                 data: myData,
-                 add: true,
-                 success: function(status) {
-                   statusesView.render();
-                 }
-  });
-}
-
-var myScroll,
-  pullDownEl, pullDownOffset,
-  pullUpEl, pullUpOffset,
-  generatedCount = 0;
-
-function initIScroll() {
-  pullDownEl = document.getElementById('pullDown');
-  pullDownOffset = pullDownEl.offsetHeight;
-  pullUpEl = document.getElementById('pullUp'); 
-  pullUpOffset = pullUpEl.offsetHeight;
-
-  myScroll = new iScroll('wrapper', {
-    //useTransition: true,
-    topOffset: pullDownOffset,
-    onRefresh: function () {
-      if (pullDownEl.className.match('loading')) {
-        pullDownEl.className = '';
-        pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
-      } else if (pullUpEl.className.match('loading')) {
-        pullUpEl.className = '';
-        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
-      }
-    },
-    onScrollMove: function () {
-      if (this.y > 5 && !pullDownEl.className.match('flip')) {
-        pullDownEl.className = 'flip';
-        pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
-        this.minScrollY = 0;
-      } else if (this.y < 5 && pullDownEl.className.match('flip')) {
-        pullDownEl.className = '';
-        pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
-        this.minScrollY = -pullDownOffset;
-      } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
-        pullUpEl.className = 'flip';
-        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Release to refresh...';
-        this.maxScrollY = this.maxScrollY;
-      } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
-        pullUpEl.className = '';
-        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
-        this.maxScrollY = pullUpOffset;
-      }
-    },
-    onScrollEnd: function () {
-      if (pullDownEl.className.match('flip')) {
-        pullDownEl.className = 'loading';
-        pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Loading...';        
-        pullDownAction(); // Execute custom function (ajax call?)
-      } else if (pullUpEl.className.match('flip')) {
-        pullUpEl.className = 'loading';
-        pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Loading...';        
-        pullUpAction(); // Execute custom function (ajax call?)
-      }
-    }
-  });
-}
+$.ajaxSetup({cache: false});
 
 document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 
@@ -174,7 +62,8 @@ var Statuses = Backbone.Collection.extend({
   },
 
   parse: function(response) {
-    curPage++;
+    // TODO: refactor
+    //this.curPage++;
     return response.statuses;
   }
 
@@ -191,29 +80,41 @@ var StatusView = Backbone.View.extend({
   template: _.template($('#status-item-template').html()),
 
   initialize: function() {
-    _.bindAll(this, 'render');
+    _.bindAll(this);
   },
 
   render: function() {
     $(this.el).html(this.template(this.model.toJSON()));
     return this;
-  }
+  },
+
 });
 
 var StatusesView = Backbone.View.extend({
 
+  statuses: null,
+
   initialize: function() {
     _.bindAll(this, 'render', 'addOne', 'addAll');
 
-    statuses.bind('add', this.addOne);
-    statuses.bind('reset', this.addAll);
-    statuses.bind('all', this.render);
+    this.curPage = 1;
+    this.countOnePage = 20;
+
+    this.myScroll = null;
+    this.pullDownEl = null;
+    this.pullDownOffset = 0;
+    this.pullUpEl = null;
+    this.pullUpOffset = 0;
+
+    this.statuses.bind('add', this.addOne);
+    this.statuses.bind('reset', this.addAll);
+    this.statuses.bind('all', this.render);
   },
 
   render: function() {
     console.log("render");
     this.$('#status-list').listview('refresh');
-    myScroll.refresh();
+    this.myScroll.refresh();
   },
 
   addOne: function(status) {
@@ -224,10 +125,111 @@ var StatusesView = Backbone.View.extend({
   },
 
   addAll: function() {
-    console.log('addAll: ' + statuses.length);
+    console.log('addAll: ' + this.statuses.length);
 
     this.$('#status-list').empty();
-    statuses.each(this.addOne);
+    this.statuses.each(this.addOne);
+  },
+
+  pullDownAction: function() {
+    this.curPage = 1;
+
+    if(user.get("token")) {
+      url = "https://api.weibo.com/2/statuses/home_timeline.json";
+      myData = {
+        access_token: user.get("token"),
+        page: this.curPage,
+        count: this.countOnePage
+      };
+    } else {
+      url = "https://api.weibo.com/2/statuses/public_timeline.json";
+      myData = {
+        source: "3150277999",
+        page: this.curPage,
+        count: this.countOnePage
+      };
+    }
+
+    this.statuses.fetch({url: url, data: myData});
+  },
+
+  pullUpAction: function() {
+    if(user.get("token")) {
+      url = "https://api.weibo.com/2/statuses/home_timeline.json";
+      myData = {
+        access_token: user.get("token"),
+        page: this.curPage,
+        count: this.countOnePage
+      };
+    } else {
+      //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
+      url = "https://api.weibo.com/2/statuses/public_timeline.json";
+      myData = {
+        source: "3150277999",
+        page: this.curPage,
+        count: this.countOnePage
+      };
+    }
+
+    var statusesView = this;
+    this.statuses.fetch({url: url,
+                   data: myData,
+                   add: true,
+                   success: function(status) {
+                     statusesView.render();
+                   }
+    });
+  },
+
+  initIScroll: function() {
+    this.pullDownEl = document.getElementById('pullDown');
+    this.pullDownOffset = this.pullDownEl.offsetHeight;
+    this.pullUpEl = document.getElementById('pullUp'); 
+    this.pullUpOffset = this.pullUpEl.offsetHeight;
+
+    this.myScroll = new iScroll('wrapper', {
+      //useTransition: true,
+      topOffset: this.pullDownOffset,
+      onRefresh: function () {
+        if (this.pullDownEl.className.match('loading')) {
+          this.pullDownEl.className = '';
+          this.pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
+        } else if (this.pullUpEl.className.match('loading')) {
+          this.pullUpEl.className = '';
+          this.pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
+        }
+      },
+      onScrollMove: function () {
+        if (this.y > 5 && !this.pullDownEl.className.match('flip')) {
+          this.pullDownEl.className = 'flip';
+          this.pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
+          this.minScrollY = 0;
+        } else if (this.y < 5 && this.pullDownEl.className.match('flip')) {
+          this.pullDownEl.className = '';
+          this.pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
+          this.minScrollY = -this.pullDownOffset;
+        } else if (this.y < (this.maxScrollY - 5) && !this.pullUpEl.className.match('flip')) {
+          this.pullUpEl.className = 'flip';
+          this.pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Release to refresh...';
+          this.maxScrollY = this.maxScrollY;
+        } else if (this.y > (this.maxScrollY + 5) && this.pullUpEl.className.match('flip')) {
+          this.pullUpEl.className = '';
+          this.pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
+          this.maxScrollY = this.pullUpOffset;
+        }
+      },
+      onScrollEnd: function () {
+        if (this.pullDownEl.className.match('flip')) {
+          this.pullDownEl.className = 'loading';
+          this.pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Loading...';        
+          pullDownAction(); // Execute custom function (ajax call?)
+        } else if (this.pullUpEl.className.match('flip')) {
+          this.pullUpEl.className = 'loading';
+          this.pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Loading...';        
+          pullUpAction(); // Execute custom function (ajax call?)
+        }
+      }
+    });
   }
 });
 
@@ -245,7 +247,7 @@ var HeaderView = Backbone.View.extend({
   },
 
   render: function() {
-    curPage = 1;
+    this.curPage = 1;
 
     if(this.model.get("token")) {
       this.$("#loginOrSend .ui-btn-text").text("发微博");
@@ -253,8 +255,8 @@ var HeaderView = Backbone.View.extend({
       url = "https://api.weibo.com/2/statuses/home_timeline.json";
       myData = {
         access_token: user.get("token"),
-        page: curPage,
-        count: countOnePage
+        page: this.curPage,
+        count: this.countOnePage
       };
     } else {
       this.$("#loginOrSend .ui-btn-text").text("登陆");
@@ -263,12 +265,12 @@ var HeaderView = Backbone.View.extend({
       //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
       myData = {
         source: "3150277999",
-        page: curPage,
-        count: countOnePage
+        page: this.curPage,
+        count: this.countOnePage
       };
     }
 
-    statuses.fetch({url: url, data: myData});
+    this.statuses.fetch({url: url, data: myData});
   },
 
   loginOrSend: function() {
@@ -360,9 +362,9 @@ var AppRouter = Backbone.Router.extend({
     this.changePage(new HomeView());
 
     user = new User();
-    statuses = new Statuses();
+    var statuses = new Statuses();
     var headerView = new HeaderView({model: user, el: $("#header")});
-    statusesView = new StatusesView({el: $("#statuses")});
+    var statusesView = new StatusesView({el: $("#statuses"), statuses: statuses});
 
     initIScroll();
 
@@ -405,10 +407,6 @@ alert('发送失败');
 });
 
 console.log("route finish");
-
-$(document).bind('pageinit', function() {
-  console.log("pageinit");
-});
 
 function deviceReady() {
 
