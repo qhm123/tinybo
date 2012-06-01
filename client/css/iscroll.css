@@ -86,7 +86,7 @@
 }
 
 #pullUp .pullUpIcon  {
-  -webkit-transform:rotate(-180degdeg) translateZ(0);
+  -webkit-transform:rotate(-180deg) translateZ(0);
 }
 
 #pullDown.flip .pullDownIcon {
