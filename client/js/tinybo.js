@@ -1,4 +1,5 @@
 var user;
+var appRouter;
 
 $.ajaxSetup({
     cache: false
@@ -138,8 +139,6 @@ var StatusesView = Backbone.View.extend({
           statusesView.myScroll.refresh();
         }
 
-        options || console.log("render options: " + options);
-
         if(options && options.add) {
             console.log("add");
             this.collection.fetch({
@@ -261,14 +260,20 @@ var HeaderView = Backbone.View.extend({
     },
 
     loginOrSend: function() {
+        /*
         if (this.model.get("token")) {
             this.send();
         } else {
             this.login();
         }
+        */
+        this.send();
     },
 
-    send: function() {},
+    send: function() {
+        console.log("navigate post_status");
+        appRouter.navigate("post_status", {trigger: true});
+    },
 
     about: function() {
         alert("haha!");
@@ -321,6 +326,15 @@ var HomeView = Backbone.View.extend({
 
 });
 
+var PostView = Backbone.View.extend({
+    template: _.template($('#post-status-template').html()),
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    }
+});
+
 console.log("view finish");
 
 /* Router */
@@ -361,6 +375,10 @@ var AppRouter = Backbone.Router.extend({
     },
 
     post_status: function() {
+        console.log('#post_status');
+
+        this.changePage(new PostView());
+
         /*
        sina.weibo.post('https://api.weibo.com/2/statuses/update.json',
        {
@@ -389,7 +407,8 @@ alert('发送失败');
         }
         $.mobile.changePage($(page.el), {
             changeHash: false,
-            transition: transition
+            transition: transition,
+            reloadPage: false
         });
     }
 
@@ -404,7 +423,7 @@ function deviceReady() {
 
     appRouter = new AppRouter();
     Backbone.history.start({
-        pushState: true
+        //pushState: true
     });
 }
 

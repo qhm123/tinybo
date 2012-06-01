@@ -8,6 +8,7 @@ $(document).bind("mobileinit", function () {
 
     // Remove page from DOM when it's being replaced
     $('div[data-role="page"]').live('pagehide', function (event, ui) {
+        console.log("pagehide");
         $(event.currentTarget).remove();
     });
 });
