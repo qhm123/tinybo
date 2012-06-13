@@ -333,7 +333,96 @@ var HomeView = Backbone.View.extend({
 });
 
 var MessageView = Backbone.View.extend({
+    events: {
+        "click #message_at": "message_at",
+        "click #message_reply": "message_reply"
+    },
+
+    initialize: function() {
+        _.bindAll(this);
+
+        $(this.el).html(this.template());
+
+        console.log($(this.el).find("#message_at")[0]);
+    },
+
     template: _.template($('#message-page-template').html()),
+
+    render: function(eventName) {
+        //$(this.el).html(this.template());
+        return this;
+    },
+
+    message_at: function() {
+        console.log("message_at");
+
+        var messageAtView = new MessageAtView();
+        $(this.el).find("#message-content")[0].html(messageAtView.render().el);
+    },
+
+    message_reply: function() {
+        console.log("message_reply");
+
+        var messageReplyView = new MessageReplyView();
+        $(this.el).find("#message-content")[0].html(messageReplyView.render().el);
+    }
+});
+
+var MessageAtView = Backbone.View.extend({
+    template: _.template($('#message-at-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+
+        this.render();
+    },
+
+    render: function(options) {
+        console.log("render");
+
+        if (user.get("token")) {
+            url = "https://api.weibo.com/2/statuses/mentions.json";
+            myData = {
+                access_token: user.get("token"),
+                page: 1,
+                count: 20
+            };
+        }
+
+        var statusesView = this;
+
+        function fetchFinished() {
+            statusesView.template.$('#message-list').listview('refresh');
+        }
+
+        console.log("refresh");
+        this.collection.fetch({
+            url: url,
+            data: myData,
+            success: fetchFinished
+        });
+    },
+
+    addOne: function(status) {
+        var view = new StatusView({
+            model: status
+        });
+        this.$('#message-list').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log('addAll: ' + this.collection.length);
+
+        this.$('#message-list').empty();
+        this.collection.each(this.addOne);
+    },
+});
+
+var MessageReplyView = Backbone.View.extend({
+    template: _.template($('#message-reply-template').html()),
 
     render: function(eventName) {
         $(this.el).html(this.template());
