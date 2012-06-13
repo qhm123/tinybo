@@ -28,7 +28,7 @@
   <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
   <script src="js/libs/modernizr-2.0.6.min.js"></script>
 
-  <script type="text/template" id="home-page">
+  <script type="text/template" id="home-page" data-position="fixed">
       <div id="header" data-role="header">
         <a id="loginOrSend">登陆</a>
         <h1>tiny bo</h1>
@@ -49,19 +49,19 @@
         </div>
       </div>
 
-      <div id="footer" data-role="footer">
+      <div data-role="footer" data-position="fixed">
         <div data-role="navbar">
           <ul>
-            <li><a href="#home" id="home" class="ui-btn-active" data-icon="custom">首页</a></li>
-            <li><a href="#message" id="recommend" data-icon="custom">信息</a></li>
-            <li><a href="#me" id="me" data-icon="custom">我的资料</a></li>
+            <li><a href="#home" class="ui-btn-active" data-icon="custom">首页</a></li>
+            <li><a href="#message"  data-icon="custom">信息</a></li>
+            <li><a href="#me" data-icon="custom">我的资料</a></li>
           </ul>
         </div>
       </div>
   </script>
 
   <script type="text/template" id="status-item-template">
-    <a href="#">
+    <a href="#status_detail/<%= id %>">
         <img src='<%= user.profile_image_url %>' />
         <h3><%= user.screen_name %></h3>
         <p><%= text %></p>
@@ -75,25 +75,89 @@
           <p style="padding:10px;"><img src='<%= retweeted_status.thumbnail_pic %>' /></p>
           </div>
         <% } %>
+        <div class="status-bottom">
+          <span>来自:<%= $(source)[0].text %></span>
+          <span class="status-bottom-right">转(<%= reposts_count %>)</span>
+          <span class="status-bottom-right">评(<%= comments_count %>)</span>
+        </div>
     </a>
   </script>
 
   <script type="text/template" id="post-status-template">
-      <div data-role="header">
+      <div data-role="header" data-position="fixed">
+        <a id="post_back">返回</a>
         <h1>发微博</h1>
-        <a id="send" href="#">发送</a>
+        <a id="send">发送</a>
       </div>
 
       <div data-role="content">
-        <textarea></textarea>
+      </div>
+        <textarea id="post_content"></textarea>
+
+      <div class="big_button_footer_five" data-role="footer" data-position="fixed">
+        <a data-role="button">位置</a>
+        <a data-role="button">图片</a>
+        <a data-role="button">话题</a>
+        <a data-role="button">提及</a>
+        <a data-role="button">表情</a>
+      </div>
+  </script>
+
+  <script type="text/template" id="message-page-template">
+      <div data-role="header" data-position="fixed">
+        <h1>我的消息</h1>
       </div>
 
-      <div data-role="footer">
-        <a href="#" data-role="button">位置</a>
-        <a href="#" data-role="button">图片</a>
-        <a href="#" data-role="button">话题</a>
-        <a href="#" data-role="button">提及</a>
-        <a href="#" data-role="button">表情</a>
+      <div data-role="content">
+      </div>
+
+      <div data-role="footer" data-position="fixed">
+        <div data-role="navbar">
+          <ul>
+            <li><a href="#home" data-icon="custom">首页</a></li>
+            <li><a href="#message" class="ui-btn-active" data-icon="custom">信息</a></li>
+            <li><a href="#me" data-icon="custom">我的资料</a></li>
+          </ul>
+        </div>
+      </div>
+  </script>
+
+  <script type="text/template" id="status-detail-page-template">
+      <div data-role="header" data-position="fixed">
+        <a id="status_detail_post_back">返回</a>
+        <h1>微博正文</h1>
+      </div>
+
+      <div data-role="content">
+        <ul id="s-d-status" data-role="listview"></ul>
+
+        <a id="s-d-reply-list" data-role="button">回复()</a>
+        <a id="s-d-repost-list" data-role="button">转发()</a>
+      </div>
+
+      <div class="big_button_footer" data-role="footer" data-position="fixed">
+        <a id="s-d-reply" data-role="button">评论</a>
+        <a id="s-d-repost" data-role="button">转发</a>
+        <a id="s-d-collect" data-role="button">收藏</a>
+      </div>
+  </script>
+
+  <script type="text/template" id="me-page-template">
+      <div data-role="header" data-position="fixed">
+        <h1>我的资料</h1>
+      </div>
+
+      <div data-role="content">
+      </div>
+
+      <div data-role="footer" data-position="fixed">
+        <div data-role="navbar">
+          <ul>
+            <li><a href="#home" data-icon="custom">首页</a></li>
+            <li><a href="#message" data-icon="custom">信息</a></li>
+            <li><a href="#me" class="ui-btn-active" data-icon="custom">我的资料</a></li>
+          </ul>
+        </div>
       </div>
   </script>
 

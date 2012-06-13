@@ -1,4 +1,5 @@
 var user;
+var statuses;
 var appRouter;
 
 $.ajaxSetup({
@@ -134,32 +135,34 @@ var StatusesView = Backbone.View.extend({
         }
 
         var statusesView = this;
+
         function fetchFinished() {
-          statusesView.$('#status-list').listview('refresh');
-          statusesView.myScroll.refresh();
+            statusesView.$('#status-list').listview('refresh');
+            statusesView.myScroll.refresh();
         }
 
-        if(options && options.add) {
+        if (options && options.add) {
             console.log("add");
             this.collection.fetch({
-              url: url,
-              data: myData,
-              add: true,
-              success: fetchFinished
+                url: url,
+                data: myData,
+                add: true,
+                success: fetchFinished
             });
         } else {
             console.log("refresh");
             this.collection.fetch({
-              url: url,
-              data: myData,
-              success: fetchFinished
+                url: url,
+                data: myData,
+                success: fetchFinished
             });
         }
     },
 
     addOne: function(status) {
         var view = new StatusView({
-            model: status
+            model: status,
+            id: "statuses-row-" + status.id
         });
         this.$('#status-list').append(view.render().el);
     },
@@ -180,15 +183,19 @@ var StatusesView = Backbone.View.extend({
     pullUpAction: function() {
         this.curPage++;
 
-        this.render({add: true});
+        this.render({
+            add: true
+        });
     },
 
     initIScroll: function() {
         var pullDownEl = document.getElementById('pullDown');
-        var pullDownOffset = pullDownEl.offsetHeight;
+        // 51
+        var pullDownOffset = pullDownEl.offsetHeight || 51;
         var pullUpEl = document.getElementById('pullUp');
         var pullUpOffset = pullUpEl.offsetHeight;
         var statusesView = this;
+        console.log("pullDownOffset: " + pullDownOffset);
 
         this.myScroll = new iScroll('wrapper', {
             //useTransition: true,
@@ -260,19 +267,18 @@ var HeaderView = Backbone.View.extend({
     },
 
     loginOrSend: function() {
-        /*
         if (this.model.get("token")) {
             this.send();
         } else {
             this.login();
         }
-        */
-        this.send();
     },
 
     send: function() {
         console.log("navigate post_status");
-        appRouter.navigate("post_status", {trigger: true});
+        appRouter.navigate("post_status", {
+            trigger: true
+        });
     },
 
     about: function() {
@@ -326,12 +332,123 @@ var HomeView = Backbone.View.extend({
 
 });
 
+var MessageView = Backbone.View.extend({
+    template: _.template($('#message-page-template').html()),
+
+    render: function(eventName) {
+        $(this.el).html(this.template());
+        return this;
+    }
+});
+
+var MeView = Backbone.View.extend({
+    template: _.template($('#me-page-template').html()),
+
+    render: function(eventName) {
+        $(this.el).html(this.template());
+        return this;
+    }
+});
+
+var StatusDetailView = Backbone.View.extend({
+    events: {
+        "click #status_detail_post_back": "back",
+        "click #s-d-reply": "reply",
+        "click #s-d-repost": "repost",
+        "click #s-d-collect": "collect"
+    },
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    template: _.template($('#status-detail-page-template').html()),
+
+    render: function(eventName) {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    back: function() {
+        window.history.back();
+    },
+
+    reply: function() {
+        var view = this;
+        sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
+            access_token: user.get("token"),
+            id: view.model.id,
+            comment: "评论测试"
+        }, function(data) {
+            alert('评论成功' + data);
+        }, function() {
+            alert('评论失败');
+        });
+    },
+
+    repost: function() {
+        var view = this;
+        sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
+            access_token: user.get("token"),
+            id: view.model.id
+        }, function(data) {
+            alert('转发成功' + data);
+        }, function() {
+            alert('转发失败');
+        });
+    },
+
+    collect: function() {
+        var view = this;
+        sina.weibo.post('https://api.weibo.com/2/favorites/create.json', {
+            access_token: user.get("token"),
+            id: view.model.id
+        }, function(data) {
+            alert('收藏成功' + data);
+        }, function() {
+            alert('收藏失败');
+        });
+    }
+});
+
 var PostView = Backbone.View.extend({
+    events: {
+        "click #send": "post",
+        "click #post_back": "post_back"
+    },
+
     template: _.template($('#post-status-template').html()),
 
     render: function() {
         $(this.el).html(this.template());
         return this;
+    },
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    post_back: function() {
+        appRouter.navigate("", {
+            trigger: true
+        });
+    },
+
+    post: function() {
+        console.log("post start");
+        console.log(this);
+        console.log(this.$el);
+        var msg = this.$el.find('#post_content')[0].value;
+        console.log(msg);
+
+        sina.weibo.post('https://api.weibo.com/2/statuses/update.json', {
+            access_token: user.get("token"),
+            status: msg
+        }, function(data) {
+            alert('发送成功' + data);
+        }, function() {
+            alert('发送失败');
+        });
     }
 });
 
@@ -343,8 +460,11 @@ var AppRouter = Backbone.Router.extend({
 
     routes: {
         "": "home",
+        "home": "home",
         "post_status": "post_status",
         "message": "message",
+        "me": "me",
+        "status_detail/:id": "status_detail",
         "*other": "defaultRoute"
     },
 
@@ -362,7 +482,7 @@ var AppRouter = Backbone.Router.extend({
         this.changePage(new HomeView());
 
         user = new User();
-        var statuses = new Statuses();
+        statuses = new Statuses();
         var headerView = new HeaderView({
             model: user,
             el: $("#header")
@@ -378,21 +498,36 @@ var AppRouter = Backbone.Router.extend({
         console.log('#post_status');
 
         this.changePage(new PostView());
-
-        /*
-       sina.weibo.post('https://api.weibo.com/2/statuses/update.json',
-       {
-access_token: user.token,
-status: msg
-},function(data) {
-alert('发送成功' + data);
-},function() {
-alert('发送失败');
-});
-*/
     },
 
-    message: function() {},
+    message: function() {
+        console.log('#message');
+
+        this.changePage(new MessageView());
+    },
+
+    me: function() {
+        console.log('#me');
+
+        this.changePage(new MeView());
+    },
+
+    status_detail: function(id) {
+        console.log('#status_detail');
+
+        console.log("id: " + id);
+        var status = statuses.where({idstr: id})[0];
+        this.changePage(new StatusDetailView({
+            model: status
+        }));
+
+        var statusView = new StatusView({
+            model: status
+        });
+
+        $('#s-d-status').append(statusView.render().el);
+        $('#s-d-status').listview('refresh');
+    },
 
     changePage: function(page) {
         $(page.el).attr('data-role', 'page');
