@@ -6,9 +6,11 @@ $.ajaxSetup({
     cache: false
 });
 
+/*
 document.addEventListener('touchmove', function(e) {
     e.preventDefault();
 }, false);
+*/
 
 /* Model */
 
@@ -35,7 +37,18 @@ var Status = Backbone.Model.extend({
             screen_name: "",
             profile_image_url: ""
         },
-        retweeted_status: null
+        retweeted_status: {
+            deleted: 0
+        },
+        deleted: 0
+    }
+
+});
+
+var Reply = Backbone.Model.extend({
+
+    defaults: {
+        reply_comment: null
     }
 
 });
@@ -69,6 +82,30 @@ var Statuses = Backbone.Collection.extend({
 
 });
 
+var Replies = Backbone.Collection.extend({
+
+    model: Reply,
+
+    sync: function(method, model, options) {
+        options || (options = {});
+
+        try {
+            sina.weibo.get(options.url, options.data, function(response) {
+                options.success(JSON.parse(response));
+                console.log("sync success");
+            }, function(response) {
+                console.log('error: ' + response);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    },
+
+    parse: function(response) {
+        return response.comments;
+    }
+});
+
 console.log("collection finish");
 
 /* View */
@@ -86,8 +123,24 @@ var StatusView = Backbone.View.extend({
     render: function() {
         $(this.el).html(this.template(this.model.toJSON()));
         return this;
+    }
+
+});
+
+var ReplyView = Backbone.View.extend({
+
+    tagName: "li",
+
+    template: _.template($('#reply-item-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
     },
 
+    render: function() {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
 });
 
 var StatusesView = Backbone.View.extend({
@@ -342,29 +395,52 @@ var MessageView = Backbone.View.extend({
         _.bindAll(this);
 
         $(this.el).html(this.template());
-
-        console.log($(this.el).find("#message_at")[0]);
     },
 
     template: _.template($('#message-page-template').html()),
 
     render: function(eventName) {
-        //$(this.el).html(this.template());
+        this.$("#message_at").trigger("click");
+
         return this;
     },
 
     message_at: function() {
         console.log("message_at");
 
-        var messageAtView = new MessageAtView();
-        $(this.el).find("#message-content")[0].html(messageAtView.render().el);
+        $(this.el).find("#message-content").empty();
+
+        messages = new Statuses();
+        var view = new MessageAtView({
+            collection: messages
+        });
+
+        var thisView = this;
+        view.render(null, function() {
+            console.log("render callback");
+            $(thisView.el).find("#message-content").html(view.el);
+            console.log(thisView.$('#message-list'));
+            thisView.$('#message-list').listview();
+        });
     },
 
     message_reply: function() {
         console.log("message_reply");
 
-        var messageReplyView = new MessageReplyView();
-        $(this.el).find("#message-content")[0].html(messageReplyView.render().el);
+        $(this.el).find("#message-content").empty();
+
+        var replies = new Replies();
+        var view = new MessageReplyView({
+            collection: replies
+        });
+
+        var thisView = this;
+        view.render(null, function() {
+            console.log("render callback");
+            $(thisView.el).find("#message-content").html(view.el);
+            console.log(thisView.$('#message-list'));
+            thisView.$('#message-list').listview();
+        });
     }
 });
 
@@ -377,10 +453,10 @@ var MessageAtView = Backbone.View.extend({
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
 
-        this.render();
+        $(this.el).html(this.template());
     },
 
-    render: function(options) {
+    render: function(options, callback) {
         console.log("render");
 
         if (user.get("token")) {
@@ -390,12 +466,14 @@ var MessageAtView = Backbone.View.extend({
                 page: 1,
                 count: 20
             };
+        } else {
+            alert("还没登录");
         }
 
         var statusesView = this;
 
         function fetchFinished() {
-            statusesView.template.$('#message-list').listview('refresh');
+            callback();
         }
 
         console.log("refresh");
@@ -404,6 +482,8 @@ var MessageAtView = Backbone.View.extend({
             data: myData,
             success: fetchFinished
         });
+
+        return this;
     },
 
     addOne: function(status) {
@@ -418,15 +498,63 @@ var MessageAtView = Backbone.View.extend({
 
         this.$('#message-list').empty();
         this.collection.each(this.addOne);
-    },
+    }
 });
 
 var MessageReplyView = Backbone.View.extend({
     template: _.template($('#message-reply-template').html()),
 
-    render: function(eventName) {
+    initialize: function() {
+        _.bindAll(this);
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+
         $(this.el).html(this.template());
+    },
+
+    render: function(options, callback) {
+        console.log("render");
+
+        if (user.get("token")) {
+            url = "https://api.weibo.com/2/comments/timeline.json";
+            myData = {
+                access_token: user.get("token"),
+                page: 1,
+                count: 20
+            };
+        } else {
+            alert("还没登录");
+        }
+
+        var statusesView = this;
+
+        function fetchFinished() {
+            callback();
+        }
+
+        console.log("refresh");
+        this.collection.fetch({
+            url: url,
+            data: myData,
+            success: fetchFinished
+        });
+
         return this;
+    },
+
+    addOne: function(reply) {
+        var view = new ReplyView({
+            model: reply
+        });
+        this.$('#message-list').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log('addAll: ' + this.collection.length);
+
+        this.$('#message-list').empty();
+        this.collection.each(this.addOne);
     }
 });
 
