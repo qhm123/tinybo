@@ -75,6 +75,29 @@ var Status = Backbone.Model.extend({
 
 });
 
+var CollectStatus = Backbone.Model.extend({
+
+    defaults: {
+        status: {
+            created_at: new Date(),
+            id: 0,
+            text: "",
+            source: "新浪微博",
+            reposts_count: 0,
+            comments_count: 0,
+            thumbnail_pic: "",
+            user: {
+                screen_name: "",
+                profile_image_url: ""
+            },
+            retweeted_status: {
+                deleted: 0
+            },
+            deleted: 0
+        }
+    }
+});
+
 var Reply = Backbone.Model.extend({
 
     defaults: {
@@ -136,6 +159,17 @@ var Statuses = Backbone.Collection.extend({
 
 });
 
+var MyStatuses = Statuses.extend({});
+
+var CollectStatuses = Statuses.extend({
+
+    model: CollectStatus,
+
+    parse: function(response) {
+        return response.favorites;
+    }
+});
+
 var Replies = Backbone.Collection.extend({
 
     model: Reply,
@@ -181,6 +215,16 @@ var StatusView = Backbone.View.extend({
 
 });
 
+var CollectView = StatusView.extend({
+
+    template: _.template($('#collect-item-template').html()),
+
+    render: function() {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
+});
+
 var ReplyView = Backbone.View.extend({
 
     tagName: "li",
@@ -210,8 +254,8 @@ var StatusesView = Backbone.View.extend({
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
 
-        user.bind('change', this.pullDownAction);
 
+        user.bind('change', this.pullDownAction);
         this.render();
 
         this.initIScroll();
@@ -506,6 +550,53 @@ var MessageView = Backbone.View.extend({
     }
 });
 
+var SimpleStatusesView = Backbone.View.extend({
+
+    template: _.template($('#simple-statuses-page-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+        console.log("initialize");
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+    },
+
+    render: function() {
+        console.log("render");
+
+        $(this.el).html(this.template());
+
+        return this;
+    },
+
+    addOne: function(status) {
+        console.log("addOne");
+        var view = new StatusView({
+            model: status
+        });
+        this.$('ul[data-role="listview"]').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log("addAll");
+        this.$('ul[data-role="listview"]').empty();
+        this.collection.each(this.addOne);
+    }
+});
+
+var CollectionView = SimpleStatusesView.extend({
+    template: _.template($('#simple-statuses-page-template').html()),
+
+    addOne: function(status) {
+        console.log("addOne");
+        var view = new CollectView({
+            model: status
+        });
+        this.$('ul[data-role="listview"]').append(view.render().el);
+    },
+});
+
 var MessageAtView = Backbone.View.extend({
     template: _.template($('#message-at-template').html()),
 
@@ -644,7 +735,7 @@ var UserContentView = Backbone.View.extend({
             console.log("thisView: " + $(thisView.el).html());
             $(thisView.el).html(html);
 
-            if(callback) {
+            if (callback) {
                 callback();
             }
         }
@@ -900,7 +991,25 @@ var AppRouter = Backbone.Router.extend({
     my_statuses: function() {
         console.log('#my_statuses');
 
-        this.changePage(new StatusesView());
+        var my_statuses = new MyStatuses();
+        var view = new SimpleStatusesView({
+            collection: my_statuses
+        });
+        this.changePage(view);
+
+        url = "https://api.weibo.com/2/statuses/user_timeline.json";
+        myData = {
+            access_token: user.get("token"),
+            page: 1,
+            count: 20
+        };
+        my_statuses.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
     },
 
     followers: function() {
@@ -918,7 +1027,25 @@ var AppRouter = Backbone.Router.extend({
     collection: function() {
         console.log('#collection');
 
-        this.changePage(new StatusesView());
+        var collects = new CollectStatuses();
+        var view = new CollectionView({
+            collection: collects
+        });
+        this.changePage(view);
+
+        url = "https://api.weibo.com/2/favorites.json";
+        myData = {
+            access_token: user.get("token"),
+            page: 1,
+            count: 20
+        };
+        collects.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
     },
 
     user: function(id) {
