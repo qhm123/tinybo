@@ -54,7 +54,7 @@
           <ul>
             <li><a href="#home" class="ui-btn-active" data-icon="custom">首页</a></li>
             <li><a href="#message"  data-icon="custom">信息</a></li>
-            <li><a href="#me" data-icon="custom">我的资料</a></li>
+            <li><a href="#user" data-icon="custom">我的资料</a></li>
           </ul>
         </div>
       </div>
@@ -147,7 +147,7 @@
           <ul>
             <li><a href="#home" data-icon="custom">首页</a></li>
             <li><a href="#message" class="ui-btn-active" data-icon="custom">信息</a></li>
-            <li><a href="#me" data-icon="custom">我的资料</a></li>
+            <li><a href="#user" data-icon="custom">我的资料</a></li>
           </ul>
         </div>
       </div>
@@ -181,7 +181,51 @@
       </div>
   </script>
 
-  <script type="text/template" id="me-page-template">
+  <script type="text/template" id="user-item-template">
+      <img src='<%= profile_image_url %>' />
+      <h3><%= screen_name %></h3>
+      <p><%= description %></p>
+  </script>
+
+  <script type="text/template" id="friends-page-template">
+      <div data-role="header" data-position="fixed">
+        <h1>用户列表</h1>
+      </div>
+
+      <div data-role="content">
+      </div>
+  </script>
+
+  <script type="text/template" id="user-content-template">
+        <img src='<%= avatar_large %>' />
+        <h3><%= screen_name %></h3>
+        <div>
+          <span>地址: </span><span><%= location %></span>
+          <span>介绍: </span><span><%= description %></span>
+        </div>
+        <hr>
+        <div class="ui-grid-a">
+          <div class="ui-block-a">
+            <a href="#friends" data-role="button">关注 <%= friends_count %></a>
+          </div>
+          <div class="ui-block-b">
+            <a href="#my_statuses" data-role="button">微博 <%= statuses_count %></a>
+          </div>
+        </div>
+        <div class="ui-grid-a">
+          <div class="ui-block-a">
+            <a href="#followers" data-role="button">粉丝 <%= followers_count %></a>
+          </div>
+          <div class="ui-block-b">
+            <a href="bi_followers" data-role="button">互粉 <%= bi_followers_count %></a>
+          </div>
+        </div>
+        <div class="controlgroup">
+          <a href="collection" data-role="button">收藏 <%= favourites_count %></a>
+        </div>
+  </script>
+
+  <script type="text/template" id="user-page-template">
       <div data-role="header" data-position="fixed">
         <h1>我的资料</h1>
       </div>
@@ -194,7 +238,7 @@
           <ul>
             <li><a href="#home" data-icon="custom">首页</a></li>
             <li><a href="#message" data-icon="custom">信息</a></li>
-            <li><a href="#me" class="ui-btn-active" data-icon="custom">我的资料</a></li>
+            <li><a href="#user" class="ui-btn-active" data-icon="custom">我的资料</a></li>
           </ul>
         </div>
       </div>

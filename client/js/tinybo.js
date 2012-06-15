@@ -18,7 +18,37 @@ var User = Backbone.Model.extend({
 
     defaults: {
         token: localStorage.getItem('access_token'),
-        expires_in: localStorage.getItem('expires_in')
+        expires_in: localStorage.getItem('expires_in'),
+        id: localStorage.getItem('uid'),
+        avatar_large: "",
+        screen_name: "",
+        location: "",
+        description: "",
+        friends_count: 0,
+        statuses_count: 0,
+        followers_count: 0,
+        bi_followers_count: 0,
+        favourites_count: 0
+    },
+
+    sync: function(method, model, options) {
+        options || (options = {});
+
+        try {
+            sina.weibo.get(options.url, options.data, function(response) {
+                options.success(JSON.parse(response));
+                console.log("sync success");
+            }, function(response) {
+                console.log('error: ' + response);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    },
+
+    parse: function(response) {
+        console.log(JSON.stringify(response));
+        return response;
     }
 
 });
@@ -56,6 +86,30 @@ var Reply = Backbone.Model.extend({
 console.log("model finish");
 
 /* Collection */
+
+var Friends = Backbone.Collection.extend({
+
+    model: User,
+
+    sync: function(method, model, options) {
+        options || (options = {});
+
+        try {
+            sina.weibo.get(options.url, options.data, function(response) {
+                options.success(JSON.parse(response));
+                console.log("sync success");
+            }, function(response) {
+                console.log('error: ' + response);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    },
+
+    parse: function(response) {
+        return response.users;
+    }
+});
 
 var Statuses = Backbone.Collection.extend({
 
@@ -352,13 +406,21 @@ var HeaderView = Backbone.View.extend({
 
                 sina.weibo.login(function(access_token, expires_in) {
                     if (access_token && expires_in) {
-                        localStorage.setItem('access_token', access_token);
-                        localStorage.setItem('expires_in', expires_in);
-                        appView.model.set({
-                            token: access_token,
-                            expires_in: expires_in
-                        });
-                        alert('登陆成功');
+                        sina.weibo.get("https://api.weibo.com/2/account/get_uid.json", {
+                            access_token: access_token
+                        }, function(ret) {
+                            console.log("ret: " + ret);
+                            var uid = JSON.parse(ret).uid;
+                            localStorage.setItem('access_token', access_token);
+                            localStorage.setItem('expires_in', expires_in);
+                            localStorage.setItem('uid', uid);
+                            appView.model.set({
+                                token: access_token,
+                                expires_in: expires_in,
+                                id: uid
+                            });
+                            alert('登陆成功');
+                        }, function() {});
                     } else {
                         alert('登陆失败，请稍后再试');
                     }
@@ -470,8 +532,6 @@ var MessageAtView = Backbone.View.extend({
             alert("还没登录");
         }
 
-        var statusesView = this;
-
         function fetchFinished() {
             callback();
         }
@@ -527,8 +587,6 @@ var MessageReplyView = Backbone.View.extend({
             alert("还没登录");
         }
 
-        var statusesView = this;
-
         function fetchFinished() {
             callback();
         }
@@ -558,12 +616,116 @@ var MessageReplyView = Backbone.View.extend({
     }
 });
 
-var MeView = Backbone.View.extend({
-    template: _.template($('#me-page-template').html()),
+var UserContentView = Backbone.View.extend({
 
-    render: function(eventName) {
+    template: _.template($('#user-content-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    render: function(callback) {
+        var url = "https://api.weibo.com/2/users/show.json";
+        if (user.get("token")) {
+            console.log(user.get("token"));
+            myData = {
+                access_token: user.get("token"),
+                uid: user.get("id")
+            };
+        } else {
+            alert("还没登录");
+        }
+
+        var thisView = this;
+
+        function fetchFinished() {
+            var html = thisView.template(thisView.model.toJSON());
+            console.log("html: " + html);
+            console.log("thisView: " + $(thisView.el).html());
+            $(thisView.el).html(html);
+
+            if(callback) {
+                callback();
+            }
+        }
+
+        console.log("refresh");
+        console.log(JSON.stringify(this.model.toJSON()));
+        this.model.fetch({
+            url: url,
+            data: myData,
+            success: fetchFinished
+        });
+    }
+});
+
+var UserView = Backbone.View.extend({
+    template: _.template($('#user-page-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    render: function() {
+        console.log("render");
         $(this.el).html(this.template());
+
         return this;
+    }
+});
+
+var FriendsView = Backbone.View.extend({
+    template: _.template($('#friends-page-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+
+        $(this.el).html(this.template());
+    },
+
+    render: function(options, callback) {
+        console.log("render");
+
+        if (user.get("token")) {
+            url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
+            myData = {
+                access_token: user.get("token"),
+                page: 1,
+                count: 20
+            };
+        } else {
+            alert("还没登录");
+        }
+
+        function fetchFinished() {
+            callback();
+        }
+
+        console.log("refresh");
+        this.collection.fetch({
+            url: url,
+            data: myData,
+            success: fetchFinished
+        });
+
+        return this;
+    },
+
+    addOne: function(reply) {
+        var view = new ReplyView({
+            model: reply
+        });
+        this.$('#message-list').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log('addAll: ' + this.collection.length);
+
+        this.$('#message-list').empty();
+        this.collection.each(this.addOne);
     }
 });
 
@@ -680,7 +842,13 @@ var AppRouter = Backbone.Router.extend({
         "home": "home",
         "post_status": "post_status",
         "message": "message",
-        "me": "me",
+        "user/:id": "user",
+        "user": "user",
+        "friends": "friends",
+        "my_statuses": "my_statuses",
+        "followers": "followers",
+        "bi_followers": "bi_followers",
+        "collection": "collection",
         "status_detail/:id": "status_detail",
         "*other": "defaultRoute"
     },
@@ -723,17 +891,60 @@ var AppRouter = Backbone.Router.extend({
         this.changePage(new MessageView());
     },
 
-    me: function() {
-        console.log('#me');
+    friends: function() {
+        console.log('#friends');
 
-        this.changePage(new MeView());
+        this.changePage(new FriendsView());
+    },
+
+    my_statuses: function() {
+        console.log('#my_statuses');
+
+        this.changePage(new StatusesView());
+    },
+
+    followers: function() {
+        console.log('#followers');
+
+        this.changePage(new FriendsView());
+    },
+
+    bi_followers: function() {
+        console.log('#bi_followers');
+
+        this.changePage(new FriendsView());
+    },
+
+    collection: function() {
+        console.log('#collection');
+
+        this.changePage(new StatusesView());
+    },
+
+    user: function(id) {
+        console.log("#user");
+
+        var thisUser = user;
+        var userView = new UserView();
+        this.changePage(userView);
+
+        console.log("changepage userView");
+        var userContentView = new UserContentView({
+            model: thisUser
+        });
+        userContentView.render(function() {
+            console.log("callback");
+            userView.$("div[data-role='content']").html(userContentView.el).trigger("create");
+        });
     },
 
     status_detail: function(id) {
         console.log('#status_detail');
 
         console.log("id: " + id);
-        var status = statuses.where({idstr: id})[0];
+        var status = statuses.where({
+            idstr: id
+        })[0];
         this.changePage(new StatusDetailView({
             model: status
         }));
@@ -784,4 +995,6 @@ document.addEventListener('deviceready', function() {
     deviceReady();
 }, false);
 
-//$(function(){ deviceReady(); });
+/*
+$(function(){ deviceReady(); });
+*/
