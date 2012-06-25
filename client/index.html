@@ -12,6 +12,7 @@
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/jquery.mobile-1.1.0.css">
+  <link rel="stylesheet" href="css/jquery.mobile.simpledialog.css">
   <link rel="stylesheet" href="css/rect-theme.css">
   <link rel="stylesheet" href="css/tinybo.css">
   <link rel="stylesheet" href="css/iscroll.css">
@@ -188,6 +189,28 @@
     <ul id="message-list" data-role="listview"></ul>
   </script>
 
+  <script type="text/template" id="status-reply-template">
+      <div data-role="header" data-position="fixed">
+        <a class="back_button">返回</a>
+        <h1>评论列表</h1>
+      </div>
+
+      <div data-role="content">
+        <ul id="s-reply-status" data-role="listview"></ul>
+      </div>
+  </script>
+
+  <script type="text/template" id="status-repost-template">
+      <div data-role="header" data-position="fixed">
+        <a class="back_button">返回</a>
+        <h1>转发列表</h1>
+      </div>
+
+      <div data-role="content">
+        <ul id="s-repost-status" data-role="listview"></ul>
+      </div>
+  </script>
+
   <script type="text/template" id="status-detail-page-template">
       <div data-role="header" data-position="fixed">
         <a id="status_detail_post_back">返回</a>
@@ -196,9 +219,9 @@
 
       <div data-role="content">
         <ul id="s-d-status" data-role="listview"></ul>
-
-        <a id="s-d-reply-list" data-role="button">回复()</a>
-        <a id="s-d-repost-list" data-role="button">转发()</a>
+        <br>
+        <a id="s-d-replies" data-role="button">查看评论</a>
+        <a id="s-d-reposts" data-role="button">查看转发</a>
       </div>
 
       <div class="big_button_footer" data-role="footer" data-position="fixed">
@@ -214,12 +237,19 @@
       <p><%= description %></p>
   </script>
 
+  <script type="text/template" id="status-reply-item-template">
+      <img src='<%= user.profile_image_url %>' />
+      <h3><%= user.screen_name %></h3>
+      <p><%= text %></p>
+  </script>
+
   <script type="text/template" id="friends-page-template">
       <div data-role="header" data-position="fixed">
         <h1>用户列表</h1>
       </div>
 
       <div data-role="content">
+        <ul id="f-p-list" data-role="listview"></ul>
       </div>
   </script>
 
@@ -254,6 +284,7 @@
 
   <script type="text/template" id="user-page-template">
       <div data-role="header" data-position="fixed">
+        <a id="logout">登出</a>
         <h1>我的资料</h1>
       </div>
 
@@ -274,6 +305,7 @@
   <script src="js/libs/jquery-1.7.1.min.js"></script>
   <script src="js/jqm.config.js"></script>
   <script src="js/libs/jquery.mobile-1.1.0.js"></script>
+  <script src="js/libs/jquery.mobile.simpledialog.js"></script>
 
   <script src="js/libs/json2.js"></script>
   <script src="js/libs/underscore.js"></script>

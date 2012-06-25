@@ -49,6 +49,21 @@ var User = Backbone.Model.extend({
     parse: function(response) {
         console.log(JSON.stringify(response));
         return response;
+    },
+
+    isTokenExpired: function() {
+        if(!localStorage.getItem('access_token')) {
+          return true;
+        }
+
+        var cur = parseInt((new Date().getTime()) / 1000);
+        var expires_in = localStorage.getItem('expires_in');
+        var last_login_time = localStorage.getItem('last_login_time');
+        if(cur - last_login_time > expires_in - 60) {
+            return true;
+        }
+
+        return false;
     }
 
 });
@@ -104,6 +119,9 @@ var Reply = Backbone.Model.extend({
         reply_comment: null
     }
 
+});
+
+var Repost = Backbone.Model.extend({
 });
 
 console.log("model finish");
@@ -194,6 +212,30 @@ var Replies = Backbone.Collection.extend({
     }
 });
 
+var Reposts = Backbone.Collection.extend({
+    model: Repost,
+
+    sync: function(method, model, options) {
+        options || (options = {});
+
+        try {
+            sina.weibo.get(options.url, options.data, function(response) {
+                options.success(JSON.parse(response));
+                console.log("sync success");
+            }, function(response) {
+                console.log('error: ' + response);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    },
+
+    parse: function(response) {
+        return response.reposts;
+    }
+
+});
+
 console.log("collection finish");
 
 /* View */
@@ -213,6 +255,51 @@ var StatusView = Backbone.View.extend({
         return this;
     }
 
+});
+
+var SimpleReplyItemView = Backbone.View.extend({
+    tagName: "li",
+
+    template: _.template($('#status-reply-item-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    render: function() {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
+});
+
+var SimpleRepostItemView = Backbone.View.extend({
+    tagName: "li",
+
+    template: _.template($('#status-reply-item-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    render: function() {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
+});
+
+var UserItemView = Backbone.View.extend({
+    tagName: "li",
+
+    template: _.template($('#user-item-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+    },
+
+    render: function() {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
 });
 
 var CollectView = StatusView.extend({
@@ -457,6 +544,7 @@ var HeaderView = Backbone.View.extend({
                             var uid = JSON.parse(ret).uid;
                             localStorage.setItem('access_token', access_token);
                             localStorage.setItem('expires_in', expires_in);
+                            localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
                             localStorage.setItem('uid', uid);
                             appView.model.set({
                                 token: access_token,
@@ -652,6 +740,74 @@ var MessageAtView = Backbone.View.extend({
     }
 });
 
+var SimpleReplyView = Backbone.View.extend({
+    template: _.template($('#status-reply-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+        console.log("initialize");
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+    },
+
+    render: function() {
+        console.log("render");
+
+        $(this.el).html(this.template());
+
+        return this;
+    },
+
+    addOne: function(status) {
+        console.log("addOne");
+        var view = new SimpleReplyItemView({
+            model: status
+        });
+        this.$('ul[data-role="listview"]').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log("addAll");
+        this.$('ul[data-role="listview"]').empty();
+        this.collection.each(this.addOne);
+    }
+});
+
+var SimpleRepostView = Backbone.View.extend({
+    template: _.template($('#status-repost-template').html()),
+
+    initialize: function() {
+        _.bindAll(this);
+        console.log("initialize");
+
+        this.collection.bind('add', this.addOne);
+        this.collection.bind('reset', this.addAll);
+    },
+
+    render: function() {
+        console.log("render");
+
+        $(this.el).html(this.template());
+
+        return this;
+    },
+
+    addOne: function(status) {
+        console.log("addOne");
+        var view = new SimpleRepostItemView({
+            model: status
+        });
+        this.$('ul[data-role="listview"]').append(view.render().el);
+    },
+
+    addAll: function() {
+        console.log("addAll: " + this.collection.length);
+        this.$('ul[data-role="listview"]').empty();
+        this.collection.each(this.addOne);
+    }
+});
+
 var MessageReplyView = Backbone.View.extend({
     template: _.template($('#message-reply-template').html()),
 
@@ -751,6 +907,10 @@ var UserContentView = Backbone.View.extend({
 });
 
 var UserView = Backbone.View.extend({
+    events: {
+        "click #logout": "logout"
+    },
+
     template: _.template($('#user-page-template').html()),
 
     initialize: function() {
@@ -762,6 +922,18 @@ var UserView = Backbone.View.extend({
         $(this.el).html(this.template());
 
         return this;
+    },
+
+    logout: function() {
+        sina.weibo.logout(function() {
+            console.log("logout success");
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('expires_in');
+            localStorage.removeItem('last_login_time');
+            localStorage.removeItem('uid');
+        }, function() {
+            console.log("logout failed");
+        });
     }
 });
 
@@ -773,49 +945,27 @@ var FriendsView = Backbone.View.extend({
 
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
-
-        $(this.el).html(this.template());
     },
 
     render: function(options, callback) {
         console.log("render");
 
-        if (user.get("token")) {
-            url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
-            myData = {
-                access_token: user.get("token"),
-                page: 1,
-                count: 20
-            };
-        } else {
-            alert("还没登录");
-        }
-
-        function fetchFinished() {
-            callback();
-        }
-
-        console.log("refresh");
-        this.collection.fetch({
-            url: url,
-            data: myData,
-            success: fetchFinished
-        });
+        $(this.el).html(this.template());
 
         return this;
     },
 
-    addOne: function(reply) {
-        var view = new ReplyView({
-            model: reply
+    addOne: function(user) {
+        var view = new UserItemView({
+            model: user
         });
-        this.$('#message-list').append(view.render().el);
+        this.$('ul[data-role="listview"]').append(view.render().el);
     },
 
     addAll: function() {
         console.log('addAll: ' + this.collection.length);
 
-        this.$('#message-list').empty();
+        this.$('ul[data-role="listview"]').empty();
         this.collection.each(this.addOne);
     }
 });
@@ -825,7 +975,9 @@ var StatusDetailView = Backbone.View.extend({
         "click #status_detail_post_back": "back",
         "click #s-d-reply": "reply",
         "click #s-d-repost": "repost",
-        "click #s-d-collect": "collect"
+        "click #s-d-collect": "collect",
+        "click #s-d-replies": "show_replies",
+        "click #s-d-reposts": "show_reposts"
     },
 
     initialize: function() {
@@ -843,28 +995,129 @@ var StatusDetailView = Backbone.View.extend({
         window.history.back();
     },
 
-    reply: function() {
-        var view = this;
-        sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
-            access_token: user.get("token"),
-            id: view.model.id,
-            comment: "评论测试"
-        }, function(data) {
-            alert('评论成功' + data);
-        }, function() {
-            alert('评论失败');
+    show_replies: function() {
+        console.log('#show_replies');
+        appRouter.navigate("status/"+this.model.id+"/replies", {trigger: false});
+
+        var collection = new Replies();
+        var view = new SimpleReplyView({
+            collection: collection
         });
+        appRouter.changePage(view);
+
+        url = "https://api.weibo.com/2/comments/show.json";
+        myData = {
+            access_token: user.get("token"),
+            id: this.model.id,
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
+    },
+
+    show_reposts: function() {
+        console.log('#show_reposts');
+        appRouter.navigate("status/"+this.model.id+"/reposts", {trigger: false});
+
+        var collection = new Reposts();
+        var view = new SimpleRepostView({
+            collection: collection
+        });
+        appRouter.changePage(view);
+
+        url = "https://api.weibo.com/2/statuses/repost_timeline.json";
+        myData = {
+            access_token: user.get("token"),
+            id: this.model.id,
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
+    },
+
+    reply: function() {
+        $.mobile.showPageLoadingMsg();
+
+        var view = this;
+        console.log("this: " + this);
+        console.log(this);
+        $(this).simpledialog({
+            'mode': 'string',
+            'prompt': 'What do you say?',
+            'useDialogForceTrue': true,
+            'useModal': true,
+            'useDialog': true,
+            'cleanOnClose': true,
+            'buttons': {
+                'OK': {
+                    click: function() {
+                        $.mobile.showPageLoadingMsg();
+
+                        var str = $(view).attr('data-string');
+                        console.log("str: " + str);
+
+                        sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
+                          access_token: user.get("token"),
+                          id: view.model.id,
+                          comment: str
+                        }, function(data) {
+                          console.log(data);
+                          $.mobile.hidePageLoadingMsg();
+                          alert('评论成功');
+                        }, function() {
+                          $.mobile.hidePageLoadingMsg();
+                          alert('评论失败');
+                        });
+
+                        $(view).simpledialog('close');
+                    }
+                }
+            }
+        });
+
+        $.mobile.hidePageLoadingMsg();
     },
 
     repost: function() {
         var view = this;
-        sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
-            access_token: user.get("token"),
-            id: view.model.id
-        }, function(data) {
-            alert('转发成功' + data);
-        }, function() {
-            alert('转发失败');
+        console.log("this: " + this);
+        console.log(this);
+        $(this).simpledialog({
+            'mode': 'string',
+            'prompt': 'What do you say?',
+            'useDialogForceTrue': true,
+            'useModal': true,
+            'useDialog': true,
+            'cleanOnClose': true,
+            'buttons': {
+                'OK': {
+                    click: function() {
+                        var str = $(view).attr('data-string');
+                        console.log("str: " + str);
+
+                        sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
+                          access_token: user.get("token"),
+                          id: view.model.id,
+                          status: str
+                        }, function(data) {
+                          console.log(data);
+                          alert('转发成功');
+                        }, function() {
+                          alert('转发失败');
+                        });
+                    }
+                }
+            }
         });
     },
 
@@ -935,16 +1188,20 @@ var AppRouter = Backbone.Router.extend({
         "message": "message",
         "user/:id": "user",
         "user": "user",
-        "friends": "friends",
         "my_statuses": "my_statuses",
+        "status_detail/:id": "status_detail",
+        "collection": "collection",
+        "friends": "friends",
         "followers": "followers",
         "bi_followers": "bi_followers",
-        "collection": "collection",
-        "status_detail/:id": "status_detail",
         "*other": "defaultRoute"
     },
 
     initialize: function() {
+        $('.back_button').live('click', function(event) {
+            window.history.back();
+            return false;
+        });
         this.firstPage = true;
     },
 
@@ -982,12 +1239,6 @@ var AppRouter = Backbone.Router.extend({
         this.changePage(new MessageView());
     },
 
-    friends: function() {
-        console.log('#friends');
-
-        this.changePage(new FriendsView());
-    },
-
     my_statuses: function() {
         console.log('#my_statuses');
 
@@ -1012,16 +1263,76 @@ var AppRouter = Backbone.Router.extend({
         });
     },
 
+    friends: function() {
+        console.log('#friends');
+
+        var collection = new Friends();
+        var view = new FriendsView({
+            collection: collection
+        });
+        this.changePage(view);
+
+        url = "https://api.weibo.com/2/friendships/friends.json";
+        myData = {
+            access_token: user.get("token"),
+            uid: user.get("id"),
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
+    },
+
     followers: function() {
         console.log('#followers');
 
-        this.changePage(new FriendsView());
+        var collection = new Friends();
+        var view = new FriendsView({
+            collection: collection
+        });
+        this.changePage(view);
+
+        url = "https://api.weibo.com/2/friendships/followers.json";
+        myData = {
+            access_token: user.get("token"),
+            uid: user.get("id"),
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
     },
 
     bi_followers: function() {
         console.log('#bi_followers');
 
-        this.changePage(new FriendsView());
+        var collection = new Friends();
+        var view = new FriendsView({
+            collection: collection
+        });
+        this.changePage(view);
+
+        url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
+        myData = {
+            access_token: user.get("token"),
+            uid: user.get("id"),
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
     },
 
     collection: function() {
