@@ -975,9 +975,7 @@ var StatusDetailView = Backbone.View.extend({
         "click #status_detail_post_back": "back",
         "click #s-d-reply": "reply",
         "click #s-d-repost": "repost",
-        "click #s-d-collect": "collect",
-        "click #s-d-replies": "show_replies",
-        "click #s-d-reposts": "show_reposts"
+        "click #s-d-collect": "collect"
     },
 
     initialize: function() {
@@ -987,7 +985,7 @@ var StatusDetailView = Backbone.View.extend({
     template: _.template($('#status-detail-page-template').html()),
 
     render: function(eventName) {
-        $(this.el).html(this.template());
+        $(this.el).html(this.template(this.model.toJSON()));
         return this;
     },
 
@@ -995,57 +993,27 @@ var StatusDetailView = Backbone.View.extend({
         window.history.back();
     },
 
-    show_replies: function() {
-        console.log('#show_replies');
-        appRouter.navigate("status/"+this.model.id+"/replies", {trigger: false});
-
-        var collection = new Replies();
-        var view = new SimpleReplyView({
-            collection: collection
-        });
-        appRouter.changePage(view);
-
-        url = "https://api.weibo.com/2/comments/show.json";
-        myData = {
-            access_token: user.get("token"),
-            id: this.model.id,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
-    },
-
-    show_reposts: function() {
-        console.log('#show_reposts');
-        appRouter.navigate("status/"+this.model.id+"/reposts", {trigger: false});
-
-        var collection = new Reposts();
-        var view = new SimpleRepostView({
-            collection: collection
-        });
-        appRouter.changePage(view);
-
-        url = "https://api.weibo.com/2/statuses/repost_timeline.json";
-        myData = {
-            access_token: user.get("token"),
-            id: this.model.id,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
-    },
-
     reply: function() {
+        var view = this;
+        var content = prompt("评论内容");
+        console.log("content: " + content);
+        if(content) {
+            $.mobile.showPageLoadingMsg("e", "Loading...", true);
+            sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
+              access_token: user.get("token"),
+              id: view.model.id,
+              comment: content
+            }, function(data) {
+              $.mobile.hidePageLoadingMsg();
+              console.log(data);
+              alert('评论成功');
+            }, function() {
+              $.mobile.hidePageLoadingMsg();
+              alert('评论失败');
+            });
+        }
+
+        /*
         $.mobile.showPageLoadingMsg();
 
         var view = this;
@@ -1086,10 +1054,31 @@ var StatusDetailView = Backbone.View.extend({
         });
 
         $.mobile.hidePageLoadingMsg();
+        */
     },
 
     repost: function() {
         var view = this;
+        var content = prompt("评论内容");
+        console.log("content: " + content);
+
+        if(content) {
+            $.mobile.showPageLoadingMsg("e", "Loading...", true);
+            sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
+              access_token: user.get("token"),
+              id: view.model.id,
+              status: content
+            }, function(data) {
+              $.mobile.hidePageLoadingMsg();
+              console.log(data);
+              alert('转发成功');
+            }, function() {
+              $.mobile.hidePageLoadingMsg();
+              console.log(data);
+              alert('转发失败');
+            });
+        }
+        /*
         console.log("this: " + this);
         console.log(this);
         $(this).simpledialog({
@@ -1119,6 +1108,7 @@ var StatusDetailView = Backbone.View.extend({
                 }
             }
         });
+        */
     },
 
     collect: function() {
@@ -1190,6 +1180,8 @@ var AppRouter = Backbone.Router.extend({
         "user": "user",
         "my_statuses": "my_statuses",
         "status_detail/:id": "status_detail",
+        "status/:id/replies": "status_replies",
+        "status/:id/reposts": "status_reposts",
         "collection": "collection",
         "friends": "friends",
         "followers": "followers",
@@ -1393,6 +1385,54 @@ var AppRouter = Backbone.Router.extend({
 
         $('#s-d-status').append(statusView.render().el);
         $('#s-d-status').listview('refresh');
+    },
+
+    status_replies: function(id) {
+        console.log('#show_replies');
+
+        var collection = new Replies();
+        var view = new SimpleReplyView({
+            collection: collection
+        });
+        appRouter.changePage(view);
+
+        url = "https://api.weibo.com/2/comments/show.json";
+        myData = {
+            access_token: user.get("token"),
+            id: id,
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
+    },
+
+    status_reposts: function(id) {
+        console.log('#show_reposts');
+
+        var collection = new Reposts();
+        var view = new SimpleRepostView({
+            collection: collection
+        });
+        appRouter.changePage(view);
+
+        url = "https://api.weibo.com/2/statuses/repost_timeline.json";
+        myData = {
+            access_token: user.get("token"),
+            id: id,
+            count: 20
+        };
+        collection.fetch({
+            url: url,
+            data: myData,
+            success: function(response) {
+                view.$('ul[data-role="listview"]').listview('refresh');
+            }
+        });
     },
 
     changePage: function(page) {

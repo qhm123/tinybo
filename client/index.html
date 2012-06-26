@@ -220,8 +220,8 @@
       <div data-role="content">
         <ul id="s-d-status" data-role="listview"></ul>
         <br>
-        <a id="s-d-replies" data-role="button">查看评论</a>
-        <a id="s-d-reposts" data-role="button">查看转发</a>
+        <a href="#status/<%= id %>/replies" data-role="button">查看评论</a>
+        <a href="#status/<%= id %>/reposts" data-role="button">查看转发</a>
       </div>
 
       <div class="big_button_footer" data-role="footer" data-position="fixed">
@@ -254,10 +254,10 @@
   </script>
 
   <script type="text/template" id="user-content-template">
-        <img src='<%= avatar_large %>' />
+        <img src='<%= avatar_large %>' width="90px" />
         <h3><%= screen_name %></h3>
         <div>
-          <span>地址: </span><span><%= location %></span>
+          <span>地址: </span><span><%= location %></span><br>
           <span>介绍: </span><span><%= description %></span>
         </div>
         <hr>
@@ -266,19 +266,21 @@
             <a href="#friends" data-role="button">关注 <%= friends_count %></a>
           </div>
           <div class="ui-block-b">
-            <a href="#my_statuses" data-role="button">微博 <%= statuses_count %></a>
+            <a href="#followers" data-role="button">粉丝 <%= followers_count %></a>
           </div>
+          <!--
+          <div class="ui-block-c">
+            <a href="#bi_followers" data-role="button">互粉 <%= bi_followers_count %></a>
+          </div>
+          -->
         </div>
         <div class="ui-grid-a">
           <div class="ui-block-a">
-            <a href="#bi_followers" data-role="button">互粉 <%= bi_followers_count %></a>
+            <a href="#collection" data-role="button">收藏 <%= favourites_count %></a>
           </div>
           <div class="ui-block-b">
-            <a href="#followers" data-role="button">粉丝 <%= followers_count %></a>
+            <a href="#my_statuses" data-role="button">微博 <%= statuses_count %></a>
           </div>
-        </div>
-        <div class="controlgroup">
-          <a href="#collection" data-role="button">收藏 <%= favourites_count %></a>
         </div>
   </script>
 

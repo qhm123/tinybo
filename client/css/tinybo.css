@@ -12,3 +12,8 @@
 
 .status-bottom-right {float:right;margin-top:2px;}
 
+html, body {
+  overflow: hidden;
+  -webkit-user-select: none;
+}
+
