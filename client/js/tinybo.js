@@ -1498,8 +1498,9 @@ function deviceReady() {
     });
 }
 
-if(navigator.userAgent.indexOf("android") >= 0
-    || navigator.userAgent.indexOf("ios") >= 0) {
+console.log("userAgent: " + navigator.userAgent);
+if(/(Android|iPhone|iPod|iPad)/.test(navigator.userAgent)) {
+  console.log("android or ios");
   document.addEventListener('deviceready', function() {
       //setTimeout(function(){deviceReady();}, 1000);
       deviceReady();

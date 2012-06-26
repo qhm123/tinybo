@@ -5,7 +5,7 @@ $(document).bind("mobileinit", function () {
     $.mobile.pushStateEnabled = false;
     //$.mobile.autoInitializePage = false;
     $.mobile.buttonMarkup.hoverDelay = 200;
-    $.mobile.defaultPageTransition = "slide";
+    $.mobile.defaultPageTransition = "none";
 
     // Remove page from DOM when it's being replaced
     $('div[data-role="page"]').live('pagehide', function (event, ui) {
