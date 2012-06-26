@@ -156,18 +156,52 @@ var Statuses = Backbone.Collection.extend({
 
     model: Status,
 
+    constants: {
+        maxRefresh: Infinity
+    },
+
+    getKey: function() {
+        return localStorage.getItem("uid") + ":statuses";
+    },
+
     sync: function(method, model, options) {
+        $.mobile.showPageLoadingMsg("e", "Loading...", true);
         options || (options = {});
 
-        try {
-            sina.weibo.get(options.url, options.data, function(response) {
-                options.success(JSON.parse(response));
-                console.log("sync success");
-            }, function(response) {
-                console.log('error: ' + response);
-            });
-        } catch (e) {
-            console.log(e);
+        var key, now, timestamp, refresh;
+        key = this.getKey();
+        if(key) {
+            now = new Date().getTime();
+            timestamp = localStorage.getItem(key + ":timestamp");
+            refresh = options.forceRefresh;
+            if(refresh || !timestamp || ((now - timestamp) > this.constants.maxRefresh)) {
+                try {
+                  sina.weibo.get(options.url, options.data, function(response) {
+                    console.log("sync success");
+
+                    localStorage.setItem(key, response);
+
+                    var now = new Date().getTime();
+                    localStorage.setItem(key + ":timestamp", now);
+
+                    options.success(JSON.parse(response));
+                    $.mobile.hidePageLoadingMsg();
+                  }, function(response) {
+                    console.log('error: ' + response);
+                    $.mobile.hidePageLoadingMsg();
+                  });
+                } catch (e) {
+                  console.log(e);
+                }
+            } else {
+                // provide data from local storage instead of a network call
+                var data = localStorage.getItem(key);
+                // simulate a normal async network call
+                setTimeout(function(){
+                    options.success(JSON.parse(data));
+                    $.mobile.hidePageLoadingMsg();
+                }, 0);
+            }
         }
     },
 
@@ -336,20 +370,17 @@ var StatusesView = Backbone.View.extend({
         this.curPage = 1;
         this.countOnePage = 20;
 
-        this.myScroll = null;
-
         this.collection.bind('add', this.addOne);
         this.collection.bind('reset', this.addAll);
-
 
         user.bind('change', this.pullDownAction);
         this.render();
 
-        this.initIScroll();
-
+        /*
         $('#wrapper').css({
             "padding": 0
         });
+       */
     },
 
     render: function(options) {
@@ -364,7 +395,6 @@ var StatusesView = Backbone.View.extend({
             };
         } else {
             url = "https://api.weibo.com/2/statuses/public_timeline.json";
-            //url = "https://api.weibo.com/2/statuses/hot/repost_weekly.json";
             myData = {
                 source: "3150277999",
                 page: this.curPage,
@@ -376,7 +406,6 @@ var StatusesView = Backbone.View.extend({
 
         function fetchFinished() {
             statusesView.$('#status-list').listview('refresh');
-            statusesView.myScroll.refresh();
         }
 
         if (options && options.add) {
@@ -424,60 +453,6 @@ var StatusesView = Backbone.View.extend({
         this.render({
             add: true
         });
-    },
-
-    initIScroll: function() {
-        var pullDownEl = document.getElementById('pullDown');
-        // 51
-        var pullDownOffset = pullDownEl.offsetHeight || 51;
-        var pullUpEl = document.getElementById('pullUp');
-        var pullUpOffset = pullUpEl.offsetHeight;
-        var statusesView = this;
-        console.log("pullDownOffset: " + pullDownOffset);
-
-        this.myScroll = new iScroll('wrapper', {
-            //useTransition: true,
-            topOffset: pullDownOffset,
-            onRefresh: function() {
-                if (pullDownEl.className.match('loading')) {
-                    pullDownEl.className = '';
-                    pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
-                } else if (pullUpEl.className.match('loading')) {
-                    pullUpEl.className = '';
-                    pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
-                }
-            },
-            onScrollMove: function() {
-                if (this.y > 5 && !pullDownEl.className.match('flip')) {
-                    pullDownEl.className = 'flip';
-                    pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
-                    this.minScrollY = 0;
-                } else if (this.y < 5 && pullDownEl.className.match('flip')) {
-                    pullDownEl.className = '';
-                    pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
-                    this.minScrollY = -pullDownOffset;
-                } else if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
-                    pullUpEl.className = 'flip';
-                    pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Release to refresh...';
-                    this.maxScrollY = this.maxScrollY;
-                } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
-                    pullUpEl.className = '';
-                    pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Pull up to load more...';
-                    this.maxScrollY = pullUpOffset;
-                }
-            },
-            onScrollEnd: function() {
-                if (pullDownEl.className.match('flip')) {
-                    pullDownEl.className = 'loading';
-                    pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Loading...';
-                    statusesView.pullDownAction(); // Execute custom function (ajax call?)
-                } else if (pullUpEl.className.match('flip')) {
-                    pullUpEl.className = 'loading';
-                    pullUpEl.querySelector('.pullUpLabel').innerHTML = 'Loading...';
-                    statusesView.pullUpAction(); // Execute custom function (ajax call?)
-                }
-            }
-        });
     }
 });
 
@@ -485,7 +460,7 @@ var HeaderView = Backbone.View.extend({
 
     events: {
         "click #loginOrSend": "loginOrSend",
-        "click #about": "about"
+        "click #refresh": "refresh"
     },
 
     initialize: function() {
@@ -519,8 +494,7 @@ var HeaderView = Backbone.View.extend({
         });
     },
 
-    about: function() {
-        alert("haha!");
+    refresh: function() {
     },
 
     login: function() {
@@ -931,8 +905,10 @@ var UserView = Backbone.View.extend({
             localStorage.removeItem('expires_in');
             localStorage.removeItem('last_login_time');
             localStorage.removeItem('uid');
+            alert("登出成功");
         }, function() {
             console.log("logout failed");
+            alert("登出失败");
         });
     }
 });
@@ -1462,17 +1438,72 @@ function deviceReady() {
     //$.mobile.initializePage();
     console.log("deviceready");
 
+    if(typeof sina.weibo == undefined) {
+        var ori_weibo_get = sina.weibo.get;
+        sina.weibo.get = function(url, params, success, fail) {
+            $.mobile.showPageLoadingMsg("e", "Loading...", true);
+            if(success) {
+                var ori_success = success;
+                success = function(response) {
+                    $.mobile.hidePageLoadingMsg();
+                    console.log("success");
+                    ori_success(response);
+                };
+            }
+            if(fail) {
+                var ori_fail = fail;
+                fail = function() {
+                    $.mobile.hidePageLoadingMsg();
+                    console.log("fail");
+                    ori_fail();
+                };
+            }
+            ori_weibo_get(url, params, success, fail);
+        };
+    } else {
+        sina.ajax.setup("http://tinybo.sinaapp.com/server/proxy.php");
+        sina.weibo = {
+            get: function(url, params, success, fail) {
+                var paramStr = "";
+                var paramCount = 0;
+                for(var param in params) {
+                  paramStr += (param + "=" + params[param] + "&");
+                  paramCount++;
+                }
+                if(paramCount > 0) {
+                  paramStr = paramStr.substr(0, paramStr.length - 1);
+                }
+
+                var newUrl = url + "?" + paramStr;
+                console.log("newUrl: " + newUrl);
+                newSuccess = function(status, response) {
+                    console.log("response: " + response);
+                    success(response);
+                };
+                sina.ajax.get(newUrl, newSuccess);
+            },
+            post: function(url, params, success, fail) {
+                newSuccess = function(status, response) {
+                    console.log("response: " + response);
+                    success(response);
+                };
+                sina.ajax.post(url, params, newSuccess);
+            }
+        };
+    }
+
     appRouter = new AppRouter();
     Backbone.history.start({
         //pushState: true
     });
 }
 
-document.addEventListener('deviceready', function() {
-    //setTimeout(function(){deviceReady();}, 1000);
-    deviceReady();
-}, false);
-
-/*
-$(function(){ deviceReady(); });
-*/
+if(navigator.userAgent.indexOf("android") >= 0
+    || navigator.userAgent.indexOf("ios") >= 0) {
+  document.addEventListener('deviceready', function() {
+      //setTimeout(function(){deviceReady();}, 1000);
+      deviceReady();
+  }, false);
+} else {
+  $(function(){ deviceReady(); });
+}
