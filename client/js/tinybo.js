@@ -52,6 +52,7 @@ var User = Backbone.Model.extend({
     },
 
     isTokenExpired: function() {
+        console.log("access_token: " + localStorage.getItem('access_token'));
         if(!localStorage.getItem('access_token')) {
           return true;
         }
@@ -59,6 +60,7 @@ var User = Backbone.Model.extend({
         var cur = parseInt((new Date().getTime()) / 1000);
         var expires_in = localStorage.getItem('expires_in');
         var last_login_time = localStorage.getItem('last_login_time');
+        console.log("cur: " + cur + ", expires_in: " + expires_in + ", last_login_time: " + last_login_time);
         if(cur - last_login_time > expires_in - 60) {
             return true;
         }
@@ -165,7 +167,6 @@ var Statuses = Backbone.Collection.extend({
     },
 
     sync: function(method, model, options) {
-        $.mobile.showPageLoadingMsg("e", "Loading...", true);
         options || (options = {});
 
         var key, now, timestamp, refresh;
@@ -174,7 +175,10 @@ var Statuses = Backbone.Collection.extend({
             now = new Date().getTime();
             timestamp = localStorage.getItem(key + ":timestamp");
             refresh = options.forceRefresh;
+            // TODO: FIXED ME
+            refresh = true;
             if(refresh || !timestamp || ((now - timestamp) > this.constants.maxRefresh)) {
+                $.mobile.showPageLoadingMsg("e", "Loading...", true);
                 try {
                   sina.weibo.get(options.url, options.data, function(response) {
                     console.log("sync success");
@@ -192,6 +196,7 @@ var Statuses = Backbone.Collection.extend({
                   });
                 } catch (e) {
                   console.log(e);
+                  $.mobile.hidePageLoadingMsg();
                 }
             } else {
                 // provide data from local storage instead of a network call
@@ -273,6 +278,67 @@ var Reposts = Backbone.Collection.extend({
 console.log("collection finish");
 
 /* View */
+
+var LoginView = Backbone.View.extend({
+    template: _.template($('#login-page-template').html()),
+
+    events: {
+        "click #l-p-login": "login"
+    },
+
+    login: function() {
+        var appView = this;
+
+        try {
+            sina.weibo.init({
+                appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
+                appSecret: "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
+                redirectUrl: "http://mobilecloudweibo.sinaapp.com"
+            }, function(response) {
+                console.log("init weibo: " + response);
+
+                sina.weibo.login(function(access_token, expires_in) {
+                    if (access_token && expires_in) {
+                        sina.weibo.get("https://api.weibo.com/2/account/get_uid.json", {
+                            access_token: access_token
+                        }, function(ret) {
+                            console.log("ret: " + ret);
+                            var uid = JSON.parse(ret).uid;
+                            localStorage.setItem('access_token', access_token);
+                            localStorage.setItem('expires_in', expires_in);
+                            localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
+                            localStorage.setItem('uid', uid);
+
+                            alert('登陆成功');
+
+                            appRouter.navigate("home", {
+                              trigger: true,
+                              replace: true
+                            });
+                        }, function() {});
+                    } else {
+                        alert('登陆失败，请稍后再试');
+                    }
+                });
+
+            }, function(msg) {
+                alert(msg);
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    },
+
+    initialize: function() {
+        _.bindAll(this);
+
+        $(this.el).html(this.template());
+    },
+
+    render: function() {
+        return this;
+    }
+});
 
 var StatusView = Backbone.View.extend({
 
@@ -906,6 +972,12 @@ var UserView = Backbone.View.extend({
             localStorage.removeItem('last_login_time');
             localStorage.removeItem('uid');
             alert("登出成功");
+
+
+            appRouter.navigate("login", {
+              trigger: true,
+              replace: true
+            });
         }, function() {
             console.log("logout failed");
             alert("登出失败");
@@ -1148,7 +1220,8 @@ console.log("view finish");
 var AppRouter = Backbone.Router.extend({
 
     routes: {
-        "": "home",
+        "": "login",
+        "login": "login",
         "home": "home",
         "post_status": "post_status",
         "message": "message",
@@ -1205,6 +1278,20 @@ var AppRouter = Backbone.Router.extend({
         console.log('#message');
 
         this.changePage(new MessageView());
+    },
+
+    login: function() {
+        console.log('#login');
+
+
+        if(!User.prototype.isTokenExpired()) {
+            appRouter.navigate("home", {
+              trigger: true,
+              replace: true
+            });
+        } else {
+            this.changePage(new LoginView());
+        }
     },
 
     my_statuses: function() {
@@ -1438,8 +1525,11 @@ function deviceReady() {
     //$.mobile.initializePage();
     console.log("deviceready");
 
-    if(typeof sina.weibo == undefined) {
-        var ori_weibo_get = sina.weibo.get;
+    if(typeof sina.weibo == "undefined") {
+        console.log("sina.weibo is undefined");
+        sina.weibo = {};
+        /*
+        //var ori_weibo_get = sina.weibo.get;
         sina.weibo.get = function(url, params, success, fail) {
             $.mobile.showPageLoadingMsg("e", "Loading...", true);
             if(success) {
@@ -1458,39 +1548,38 @@ function deviceReady() {
                     ori_fail();
                 };
             }
-            ori_weibo_get(url, params, success, fail);
+            //ori_weibo_get(url, params, success, fail);
         };
-    } else {
-        sina.ajax.setup("http://tinybo.sinaapp.com/server/proxy.php");
-        sina.weibo = {
-            get: function(url, params, success, fail) {
-                var paramStr = "";
-                var paramCount = 0;
-                for(var param in params) {
-                  paramStr += (param + "=" + params[param] + "&");
-                  paramCount++;
-                }
-                if(paramCount > 0) {
-                  paramStr = paramStr.substr(0, paramStr.length - 1);
-                }
-
-                var newUrl = url + "?" + paramStr;
-                console.log("newUrl: " + newUrl);
-                newSuccess = function(status, response) {
-                    console.log("response: " + response);
-                    success(response);
-                };
-                sina.ajax.get(newUrl, newSuccess);
-            },
-            post: function(url, params, success, fail) {
-                newSuccess = function(status, response) {
-                    console.log("response: " + response);
-                    success(response);
-                };
-                sina.ajax.post(url, params, newSuccess);
-            }
-        };
+        */
     }
+
+    sina.ajax.setup("http://tinybo.sinaapp.com/server/proxy.php");
+    sina.weibo.get = function(url, params, success, fail) {
+            var paramStr = "";
+            var paramCount = 0;
+            for(var param in params) {
+              paramStr += (param + "=" + params[param] + "&");
+              paramCount++;
+            }
+            if(paramCount > 0) {
+              paramStr = paramStr.substr(0, paramStr.length - 1);
+            }
+
+            var newUrl = url + "?" + paramStr;
+            console.log("newUrl: " + newUrl);
+            newSuccess = function(status, response) {
+                console.log("response: " + response);
+                success(response);
+            };
+            sina.ajax.get(newUrl, newSuccess);
+    };
+    sina.weibo.post =  function(url, params, success, fail) {
+            newSuccess = function(status, response) {
+                console.log("response: " + response);
+                success(response);
+            };
+            sina.ajax.post(url, params, newSuccess);
+    };
 
     appRouter = new AppRouter();
     Backbone.history.start({
