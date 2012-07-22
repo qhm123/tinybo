@@ -1499,6 +1499,9 @@ var AppRouter = Backbone.Router.extend({
     },
 
     changePage: function(page) {
+        var cur = new Date();
+        console.log("time start");
+
         $(page.el).attr('data-role', 'page');
         page.render();
         $('body').append($(page.el));
@@ -1514,6 +1517,9 @@ var AppRouter = Backbone.Router.extend({
             transition: transition,
             reloadPage: false
         });
+
+        var end = new Date();
+        console.log("time waste: " + (end - cur));
     }
 
 });
