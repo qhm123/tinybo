@@ -1,12 +1,36 @@
 define(['jquery',
-       'backbone', 'jqm', 'models/user', 'views/login'],
-       function($, Backbone, jqm, User, LoginView) {
+       'backbone',
+       'jqm',
+       'models/user',
+       'models/status',
+       'collections/statuses',
+       'collections/replies',
+       'collections/reposts',
+       'collections/collect_statuses',
+       'collections/friends',
+       'views/login',
+       'views/home',
+       'views/post',
+       'views/message',
+       'views/user',
+       'views/simple_statuses',
+       'views/status_detail',
+       'views/simple_reply',
+       'views/simple_repost',
+       'views/collection',
+       'views/friends'
+  ], function($, Backbone, jqm, User, Status, Statuses, Replies,
+              Reposts, CollectStatuses, Friends, LoginView,
+              HomeView, PostView, MessageView, UserView,
+             SimpleStatusesView, StatusDetailView, SimpleReplyView,
+             SimpleRepostView, CollectionView, FriendsView) {
+
+  console.log("router.js");
 
   var AppRouter = Backbone.Router.extend({
     routes: {
         "": "login",
         "login": "login",
-        /*
         "home": "home",
         "post_status": "post_status",
         "message": "message",
@@ -20,7 +44,6 @@ define(['jquery',
         "friends": "friends",
         "followers": "followers",
         "bi_followers": "bi_followers",
-       */
         "*other": "defaultRoute"
     },
 
@@ -32,29 +55,22 @@ define(['jquery',
         });
        */
         this.firstPage = true;
+        console.log("initialize");
     },
 
     defaultRoute: function() {
         console.log("defaultRoute");
     },
 
-    /*
     home: function() {
         console.log('#home');
 
-        this.changePage(new HomeView());
-
-        user = new User();
-        statuses = new Statuses();
-        var headerView = new HeaderView({
-            model: user,
-            el: $("#header")
-        });
-        var statusesView = new StatusesView({
-            el: $("#statuses"),
-            collection: statuses
-        });
-
+        var user = new User();
+        var statuses = new Statuses();
+        var view = new HomeView();
+        view.user = user;
+        view.statuses = statuses;
+        this.changePage(view);
     },
 
     post_status: function() {
@@ -68,30 +84,27 @@ define(['jquery',
 
         this.changePage(new MessageView());
     },
-   */
 
     login: function() {
         console.log('#login');
 
 
         if(!User.prototype.isTokenExpired()) {
-          /*
-            appRouter.navigate("home", {
+            window.appRouter.navigate("home", {
               trigger: true,
               replace: true
             });
-           */
-          console.log("token is not expired.");
+            console.log("token is not expired.");
         } else {
-            this.changePage(new LoginView());
+            var view = new LoginView();
+            this.changePage(view);
         }
     },
 
-    /*
     my_statuses: function() {
         console.log('#my_statuses');
 
-        var my_statuses = new MyStatuses();
+        var my_statuses = new Statuses();
         var view = new SimpleStatusesView({
             collection: my_statuses
         });
@@ -123,7 +136,7 @@ define(['jquery',
 
         url = "https://api.weibo.com/2/friendships/friends.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             uid: user.get("id"),
             count: 20
         };
@@ -147,7 +160,7 @@ define(['jquery',
 
         url = "https://api.weibo.com/2/friendships/followers.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             uid: user.get("id"),
             count: 20
         };
@@ -171,7 +184,7 @@ define(['jquery',
 
         url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             uid: user.get("id"),
             count: 20
         };
@@ -195,7 +208,7 @@ define(['jquery',
 
         url = "https://api.weibo.com/2/favorites.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             page: 1,
             count: 20
         };
@@ -211,37 +224,34 @@ define(['jquery',
     user: function(id) {
         console.log("#user");
 
-        var thisUser = user;
         var userView = new UserView();
         this.changePage(userView);
-
-        console.log("changepage userView");
-        var userContentView = new UserContentView({
-            model: thisUser
-        });
-        userContentView.render(function() {
-            console.log("callback");
-            userView.$("div[data-role='content']").html(userContentView.el).trigger("create");
-        });
     },
 
     status_detail: function(id) {
         console.log('#status_detail');
+        var thisRouter = this;
 
         console.log("id: " + id);
+        var status = new Status();
+        status.fetch({
+          url: 'https://api.weibo.com/2/statuses/show.json',
+          data: {
+            access_token: window.user.get("token"),
+            id: id
+          },
+          success: function() {
+            thisRouter.changePage(new StatusDetailView({
+                model: status
+            }));
+          }
+        });
+        /*
         var status = statuses.where({
             idstr: id
         })[0];
-        this.changePage(new StatusDetailView({
-            model: status
-        }));
+       */
 
-        var statusView = new StatusView({
-            model: status
-        });
-
-        $('#s-d-status').append(statusView.render().el);
-        $('#s-d-status').listview('refresh');
     },
 
     status_replies: function(id) {
@@ -251,11 +261,11 @@ define(['jquery',
         var view = new SimpleReplyView({
             collection: collection
         });
-        appRouter.changePage(view);
+        window.appRouter.changePage(view);
 
         url = "https://api.weibo.com/2/comments/show.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             id: id,
             count: 20
         };
@@ -275,11 +285,11 @@ define(['jquery',
         var view = new SimpleRepostView({
             collection: collection
         });
-        appRouter.changePage(view);
+        window.appRouter.changePage(view);
 
         url = "https://api.weibo.com/2/statuses/repost_timeline.json";
         myData = {
-            access_token: user.get("token"),
+            access_token: window.user.get("token"),
             id: id,
             count: 20
         };
@@ -291,7 +301,6 @@ define(['jquery',
             }
         });
     },
-   */
 
     changePage: function(page) {
         var cur = new Date();
@@ -317,5 +326,7 @@ define(['jquery',
         console.log("time waste: " + (end - cur));
     }
   });
+
+  return AppRouter;
 
 });

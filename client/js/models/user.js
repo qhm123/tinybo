@@ -20,7 +20,6 @@ define(['underscore', 'backbone'], function(_, Backbone) {
       sync: function(method, model, options) {
           options || (options = {});
 
-          /*
           try {
               sina.weibo.get(options.url, options.data, function(response) {
                   options.success(JSON.parse(response));
@@ -31,7 +30,6 @@ define(['underscore', 'backbone'], function(_, Backbone) {
           } catch (e) {
               console.log(e);
           }
-         */
       },
 
       parse: function(response) {

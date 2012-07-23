@@ -14,7 +14,6 @@ define(['jquery',
       login: function() {
           var appView = this;
 
-          /*
           try {
               sina.weibo.init({
                   appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
@@ -37,7 +36,7 @@ define(['jquery',
 
                               alert('登陆成功');
 
-                              appRouter.navigate("home", {
+                              window.appRouter.navigate("home", {
                                 trigger: true,
                                 replace: true
                               });
@@ -53,7 +52,6 @@ define(['jquery',
           } catch (e) {
               console.log(e);
           }
-         */
       },
 
       initialize: function() {
@@ -66,5 +64,7 @@ define(['jquery',
           return this;
       }
   });
+
+  return LoginView;
 
 });
