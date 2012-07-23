@@ -7,8 +7,8 @@ Library主要用到了Backbone和jquerymobile。
 TODO
 =====
 
-* 使用requirejs模块化
-* 更改页面模型
+* <del>使用requirejs模块化</del>
+* <del>更改页面模型</del>
 * 完善localStorage
 * 添加语音发微博
 
