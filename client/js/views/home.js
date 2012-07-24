@@ -46,6 +46,7 @@ define(['jquery',
       },
 
       refresh: function() {
+        this.trigger("refresh");
       },
 
       login: function() {
@@ -94,6 +95,10 @@ define(['jquery',
   });
 
   var StatusesView = Backbone.View.extend({
+      events: {
+        "click img.status_avatar": "avatarClicked",
+        "click .status_list_more": "loadMore"
+      },
 
       initialize: function() {
           _.bindAll(this);
@@ -118,21 +123,12 @@ define(['jquery',
       render: function(options) {
           console.log("render");
 
-          if (this.user.get("token")) {
-              url = "https://api.weibo.com/2/statuses/home_timeline.json";
-              myData = {
-                  access_token: this.user.get("token"),
-                  page: this.curPage,
-                  count: this.countOnePage
-              };
-          } else {
-              url = "https://api.weibo.com/2/statuses/public_timeline.json";
-              myData = {
-                  source: "3150277999",
-                  page: this.curPage,
-                  count: this.countOnePage
-              };
-          }
+          url = "https://api.weibo.com/2/statuses/home_timeline.json";
+          myData = {
+              access_token: this.user.get("token"),
+              page: this.curPage,
+              count: this.countOnePage
+          };
 
           var statusesView = this;
 
@@ -187,12 +183,24 @@ define(['jquery',
           this.render({
               add: true
           });
+      },
+
+      avatarClicked: function() {
+        console.log("avatarClicked");
+      },
+
+      loadMore: function() {
+        console.log("loadMore");
+        this.trigger("loadMore");
+
+        this.pullUpAction();
       }
   });
 
   var HomeView = Backbone.View.extend({
 
     template: _.template(template),
+
 
     render: function(eventName) {
       $(this.el).html(this.template());
@@ -205,6 +213,9 @@ define(['jquery',
         el: this.$("#statuses"),
         user: this.user,
         collection: this.statuses
+      });
+      headerView.bind("refresh", function() {
+          statusesView.pullDownAction();
       });
 
       return this;

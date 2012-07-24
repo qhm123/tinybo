@@ -137,7 +137,7 @@ define(['jquery',
         url = "https://api.weibo.com/2/friendships/friends.json";
         myData = {
             access_token: window.user.get("token"),
-            uid: user.get("id"),
+            uid: window.user.get("id"),
             count: 20
         };
         collection.fetch({
