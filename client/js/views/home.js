@@ -3,101 +3,18 @@ define(['jquery',
        'backbone',
        'text!templates/home.html',
        'views/status',
+       'collections/statuses',
+       'models/user',
        'jqm',
        'utils'
-  ], function($, _, Backbone, template, StatusView) {
-
-  var HeaderView = Backbone.View.extend({
-
-      events: {
-          "click #loginOrSend": "loginOrSend",
-          "click #refresh": "refresh"
-      },
-
-      initialize: function() {
-          _.bindAll(this);
-
-          this.model.bind('change', this.render);
-
-          this.render();
-      },
-
-      render: function() {
-          if (this.model.get("token")) {
-              this.$("#loginOrSend").text("发微博");
-          } else {
-              this.$("#loginOrSend").text("登陆");
-          }
-      },
-
-      loginOrSend: function() {
-          if (this.model.get("token")) {
-              this.send();
-          } else {
-              this.login();
-          }
-      },
-
-      send: function() {
-          console.log("navigate post_status");
-          appRouter.navigate("post_status", {
-              trigger: true
-          });
-      },
-
-      refresh: function() {
-        this.trigger("refresh");
-      },
-
-      login: function() {
-
-          var appView = this;
-
-          try {
-              sina.weibo.init({
-                  appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
-                  appSecret: "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
-                  redirectUrl: "http://mobilecloudweibo.sinaapp.com"
-              }, function(response) {
-                  console.log("init weibo: " + response);
-
-                  sina.weibo.login(function(access_token, expires_in) {
-                      if (access_token && expires_in) {
-                          sina.weibo.get("https://api.weibo.com/2/account/get_uid.json", {
-                              access_token: access_token
-                          }, function(ret) {
-                              console.log("ret: " + ret);
-                              var uid = JSON.parse(ret).uid;
-                              localStorage.setItem('access_token', access_token);
-                              localStorage.setItem('expires_in', expires_in);
-                              localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
-                              localStorage.setItem('uid', uid);
-                              appView.model.set({
-                                  token: access_token,
-                                  expires_in: expires_in,
-                                  id: uid
-                              });
-                              alert('登陆成功');
-                          }, function() {});
-                      } else {
-                          alert('登陆失败，请稍后再试');
-                      }
-                  });
-
-              }, function(msg) {
-                  alert(msg);
-              });
-          } catch (e) {
-              console.log(e);
-          }
-      }
-
-  });
+  ], function($, _, Backbone, template, StatusView, Statuses, User) {
 
   var StatusesView = Backbone.View.extend({
       events: {
         "click img.status_avatar": "avatarClicked",
-        "click .status_list_more": "loadMore"
+        "click .status_list_more": "loadMore",
+        "click img.status_pic": "statusPicClicked",
+        "click img.retweeted_status_pic": "retweetedStatusPicClicked"
       },
 
       initialize: function() {
@@ -108,16 +25,6 @@ define(['jquery',
 
           this.collection.bind('add', this.addOne);
           this.collection.bind('reset', this.addAll);
-
-          this.user = this.options.user;
-          this.user.bind('change', this.pullDownAction);
-          this.render();
-
-          /*
-          $('#wrapper').css({
-              "padding": 0
-          });
-         */
       },
 
       render: function(options) {
@@ -125,7 +32,7 @@ define(['jquery',
 
           url = "https://api.weibo.com/2/statuses/home_timeline.json";
           myData = {
-              access_token: this.user.get("token"),
+              access_token: window.user.get("token"),
               page: this.curPage,
               count: this.countOnePage
           };
@@ -171,13 +78,13 @@ define(['jquery',
           console.log("all done");
       },
 
-      pullDownAction: function() {
+      refresh: function() {
           this.curPage = 1;
 
           this.render();
       },
 
-      pullUpAction: function() {
+      loadMore: function() {
           this.curPage++;
 
           this.render({
@@ -189,36 +96,57 @@ define(['jquery',
         console.log("avatarClicked");
       },
 
-      loadMore: function() {
-        console.log("loadMore");
-        this.trigger("loadMore");
+      statusPicClicked: function() {
+        console.log("statusPicClicked");
+      },
 
-        this.pullUpAction();
+      retweetedStatusPicClicked: function() {
+        console.log("retweetedStatusPicClicked");
       }
   });
 
   var HomeView = Backbone.View.extend({
 
+    events: {
+      "click #send": "send",
+      "click #refresh": "refresh"
+    },
+
     template: _.template(template),
 
+    initialize: function() {
+      _.bindAll(this);
+
+      this.statuses = new Statuses();
+      window.user = new User({
+        token: localStorage.getItem('access_token'),
+        expires_in: localStorage.getItem('expires_in'),
+        id: localStorage.getItem('uid')
+      });
+      console.log("user token: " + window.user.get("token"));
+    },
 
     render: function(eventName) {
       $(this.el).html(this.template());
 
-      var headerView = new HeaderView({
-        model: this.user,
-        el: this.$("#header")
-      });
-      var statusesView = new StatusesView({
+      this.statusesView = new StatusesView({
         el: this.$("#statuses"),
-        user: this.user,
+        user: window.user,
         collection: this.statuses
       });
-      headerView.bind("refresh", function() {
-          statusesView.pullDownAction();
-      });
+      this.statusesView.render();
 
       return this;
+    },
+
+    send: function() {
+      window.appRouter.navigate("post_status", {
+        trigger: true
+      });
+    },
+
+    refresh: function() {
+      this.statusesView.refresh();
     }
 
   });

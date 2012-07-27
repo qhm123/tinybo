@@ -1,4 +1,4 @@
-<a href="#status_detail/<%= id %>">
+<!--<a href="#status_detail/<%= id %>">-->
   <% if (deleted) { %>
     <p><%= text %></p>
   <% } else { %>
@@ -7,7 +7,7 @@
     <p><%= text %></p>
     <p class="ui-li-aside"><%= (new Date(created_at)).format("dd日 hh:mm:ss") %></p>
     <% if (thumbnail_pic) { %>
-      <p style="margin-top:6px;"><img src='<%= thumbnail_pic %>' /></p>
+      <p style="margin-top:6px;"><img class="status_pic" src='<%= thumbnail_pic %>' /></p>
     <% } %>
     <% if (retweeted_status.text) { %>
       <% if (retweeted_status.deleted) { %>
@@ -16,7 +16,7 @@
         <div style="background-color:#eee;margin-top:8px;">
         <p style="padding:10px;padding-bottom:0;"><span style="color:blue;">@<%= retweeted_status.user.screen_name %></span>(<%= (new Date(retweeted_status.created_at)).format("dd日 hh:mm:ss") %>): <%= retweeted_status.text %></p>
         <% if (retweeted_status.thumbnail_pic) { %>
-        <p style="padding:10px;"><img src='<%= retweeted_status.thumbnail_pic %>' /></p>
+        <p style="padding:10px;"><img class="retweeted_status_pic" src='<%= retweeted_status.thumbnail_pic %>' /></p>
         <% } %>
         </div>
       <% } %>
@@ -27,4 +27,4 @@
       <span class="status-bottom-right">评(<%= comments_count %>)</span>
     </div>
   <% } %>
-</a>
+<!--</a>-->

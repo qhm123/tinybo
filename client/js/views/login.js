@@ -12,46 +12,43 @@ define(['jquery',
       },
 
       login: function() {
-          var appView = this;
+        var redirect_uri = encodeURIComponent("http://tinybo.sinaapp.com/#oauth");
+        var url = "https://api.weibo.com/oauth2/authorize?client_id=2840009992&response_type=token&redirect_uri="+redirect_uri;
+        if(typeof sina.childBrowser == 'undefined') {
+          window.location = url;
+        } else {
+          sina.childBrowser.showWebPage(url, {
+            showLocationBar: false
+          });
 
-          try {
-              sina.weibo.init({
-                  appKey: "19CDAEC7FED64A40458D5817820E894B2B33A1CA68520B51",
-                  appSecret: "BF474EF214B506A9E99C7F69B28E2E28E610B137F4666588F0FF8E8AF65E7D7045A3ECC5157059B5",
-                  redirectUrl: "http://mobilecloudweibo.sinaapp.com"
-              }, function(response) {
-                  console.log("init weibo: " + response);
+          window.sina.childBrowser.onLocationChange = function(location) {
+            console.log("location: " + location);
+            if (location.indexOf("http://tinybo.sinaapp.com/#oauth") >= 0) {
+              var values = location.match("access_token=(.*)&remind_in=(.*)&expires_in=(.*)&uid=(.*)");
+              var access_token = values[1];
+              var remind_in = values[2];
+              var expires_in = values[3];
+              var uid = values[4];
+              localStorage.setItem('access_token', access_token);
+              localStorage.setItem('expires_in', expires_in);
+              localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
+              localStorage.setItem('uid', uid);
+              window.user = new User();
 
-                  sina.weibo.login(function(access_token, expires_in) {
-                      if (access_token && expires_in) {
-                          sina.weibo.get("https://api.weibo.com/2/account/get_uid.json", {
-                              access_token: access_token
-                          }, function(ret) {
-                              console.log("ret: " + ret);
-                              var uid = JSON.parse(ret).uid;
-                              localStorage.setItem('access_token', access_token);
-                              localStorage.setItem('expires_in', expires_in);
-                              localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
-                              localStorage.setItem('uid', uid);
+              sina.childBrowser.close();
 
-                              alert('登陆成功');
-
-                              window.appRouter.navigate("home", {
-                                trigger: true,
-                                replace: true
-                              });
-                          }, function() {});
-                      } else {
-                          alert('登陆失败，请稍后再试');
-                      }
-                  });
-
-              }, function(msg) {
-                  alert(msg);
+              window.appRouter.navigate("home", {
+                trigger: true,
+                replace: true
               });
-          } catch (e) {
-              console.log(e);
-          }
+
+              alert('登陆成功');
+
+            } else {
+              console.log("other");
+            }
+          };
+        }
       },
 
       initialize: function() {

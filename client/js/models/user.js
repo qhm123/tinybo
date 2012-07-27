@@ -1,6 +1,6 @@
-define(['underscore', 'backbone'], function(_, Backbone) {
+define(['underscore', 'backbone', 'models/base'], function(_, Backbone, Base) {
 
-  var User = Backbone.Model.extend({
+  var User = Base.extend({
 
       defaults: {
           token: localStorage.getItem('access_token'),
@@ -17,25 +17,11 @@ define(['underscore', 'backbone'], function(_, Backbone) {
           favourites_count: 0
       },
 
-      sync: function(method, model, options) {
-          options || (options = {});
-
-          try {
-              sina.weibo.get(options.url, options.data, function(response) {
-                  options.success(JSON.parse(response));
-                  console.log("sync success");
-              }, function(response) {
-                  console.log('error: ' + response);
-              });
-          } catch (e) {
-              console.log(e);
-          }
-      },
-
       parse: function(response) {
-          console.log(JSON.stringify(response));
           return response;
-      },
+      }
+
+  }, {
 
       isTokenExpired: function() {
           console.log("access_token: " + localStorage.getItem('access_token'));

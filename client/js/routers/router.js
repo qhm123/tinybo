@@ -44,6 +44,7 @@ define(['jquery',
         "friends": "friends",
         "followers": "followers",
         "bi_followers": "bi_followers",
+        "oauth*values": "oauth",
         "*other": "defaultRoute"
     },
 
@@ -65,11 +66,7 @@ define(['jquery',
     home: function() {
         console.log('#home');
 
-        var user = new User();
-        var statuses = new Statuses();
         var view = new HomeView();
-        view.user = user;
-        view.statuses = statuses;
         this.changePage(view);
     },
 
@@ -89,7 +86,8 @@ define(['jquery',
         console.log('#login');
 
 
-        if(!User.prototype.isTokenExpired()) {
+        if(!User.isTokenExpired()) {
+            window.user = new User();
             window.appRouter.navigate("home", {
               trigger: true,
               replace: true
@@ -300,6 +298,29 @@ define(['jquery',
                 view.$('ul[data-role="listview"]').listview('refresh');
             }
         });
+    },
+
+    oauth: function(url) {
+      console.log("oauth url: " + url);
+      var values = url.match("access_token=(.*)&remind_in=(.*)&expires_in=(.*)&uid=(.*)");
+      var access_token = values[1];
+      var remind_in = values[2];
+      var expires_in = values[3];
+      var uid = values[4];
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('expires_in', expires_in);
+      localStorage.setItem('last_login_time', parseInt((new Date().getTime()) / 1000));
+      localStorage.setItem('uid', uid);
+      window.user = new User();
+      console.log("oauth user token: " + window.user.get("token"));
+      console.log("oauth access_token: " + localStorage.getItem("access_token"));
+
+      alert('登陆成功');
+
+      window.appRouter.navigate("home", {
+        trigger: true,
+        replace: true
+      });
     },
 
     changePage: function(page) {
