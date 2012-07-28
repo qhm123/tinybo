@@ -7,10 +7,10 @@
 <hr>
 <div class="ui-grid-a">
   <div class="ui-block-a">
-    <a href="#friends" data-role="button">关注 <%= friends_count %></a>
+    <a href="#user/<%= id %>/friends" data-role="button">关注 <%= friends_count %></a>
   </div>
   <div class="ui-block-b">
-    <a href="#followers" data-role="button">粉丝 <%= followers_count %></a>
+    <a href="#user/<%= id %>/followers" data-role="button">粉丝 <%= followers_count %></a>
   </div>
   <!--
   <div class="ui-block-c">
@@ -20,9 +20,9 @@
 </div>
 <div class="ui-grid-a">
   <div class="ui-block-a">
-    <a href="#collection" data-role="button">收藏 <%= favourites_count %></a>
+    <a href="#user/<%= id %>/statuses" data-role="button">微博 <%= statuses_count %></a>
   </div>
   <div class="ui-block-b">
-    <a href="#my_statuses" data-role="button">微博 <%= statuses_count %></a>
+    <a id="btn_collection" href="#user/<%= id %>/collection" data-role="button">收藏 <%= favourites_count %></a>
   </div>
 </div>

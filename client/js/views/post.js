@@ -30,9 +30,12 @@ define(['jquery', 'underscore', 'backbone', 'text!templates/post.html',
         },
 
         post_back: function() {
-            window.appRouter.navigate("", {
+          /*
+            window.appRouter.navigate("#", {
                 trigger: true
             });
+           */
+          window.history.back();
         },
 
         post: function() {
@@ -49,6 +52,7 @@ define(['jquery', 'underscore', 'backbone', 'text!templates/post.html',
                 }, function(data) {
                     var j = JSON.parse(data);
                     alert('发送成功');
+                    window.history.back();
                 }, function() {
                     alert('发送失败');
                 });
@@ -59,6 +63,7 @@ define(['jquery', 'underscore', 'backbone', 'text!templates/post.html',
                 }, this.imageURI, function(data) {
                     var j = JSON.parse(data);
                     alert('发送成功');
+                    window.history.back();
                 }, function(response) {
                     alert('error:' + response);
                 });

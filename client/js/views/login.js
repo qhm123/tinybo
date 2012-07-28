@@ -13,7 +13,7 @@ define(['jquery',
 
       login: function() {
         var redirect_uri = encodeURIComponent("http://tinybo.sinaapp.com/#oauth");
-        var url = "https://api.weibo.com/oauth2/authorize?client_id=2840009992&response_type=token&redirect_uri="+redirect_uri;
+        var url = "https://api.weibo.com/oauth2/authorize?display=mobile&client_id=2840009992&response_type=token&redirect_uri="+redirect_uri;
         if(typeof sina.childBrowser == 'undefined') {
           window.location = url;
         } else {
@@ -37,7 +37,7 @@ define(['jquery',
 
               sina.childBrowser.close();
 
-              window.appRouter.navigate("home", {
+              window.appRouter.navigate("#home", {
                 trigger: true,
                 replace: true
               });

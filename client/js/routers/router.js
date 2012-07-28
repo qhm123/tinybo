@@ -32,18 +32,17 @@ define(['jquery',
         "": "login",
         "login": "login",
         "home": "home",
-        "post_status": "post_status",
         "message": "message",
         "user/:id": "user",
-        "user": "user",
-        "my_statuses": "my_statuses",
-        "status_detail/:id": "status_detail",
+        "user/:id/collection": "collection",
+        "user/:id/friends": "friends",
+        "user/:id/followers": "followers",
+        "user/:id/bi_followers": "bi_followers",
+        "user/:id/statuses": "user_statuses",
+        "status/new": "status_new",
+        "status/:id": "status_detail",
         "status/:id/replies": "status_replies",
         "status/:id/reposts": "status_reposts",
-        "collection": "collection",
-        "friends": "friends",
-        "followers": "followers",
-        "bi_followers": "bi_followers",
         "oauth*values": "oauth",
         "*other": "defaultRoute"
     },
@@ -70,8 +69,8 @@ define(['jquery',
         this.changePage(view);
     },
 
-    post_status: function() {
-        console.log('#post_status');
+    status_new: function() {
+        console.log('#status_new');
 
         this.changePage(new PostView());
     },
@@ -88,7 +87,7 @@ define(['jquery',
 
         if(!User.isTokenExpired()) {
             window.user = new User();
-            window.appRouter.navigate("home", {
+            window.appRouter.navigate("#home", {
               trigger: true,
               replace: true
             });
@@ -99,22 +98,23 @@ define(['jquery',
         }
     },
 
-    my_statuses: function() {
-        console.log('#my_statuses');
+    user_statuses: function(userId) {
+        console.log('#user_statuses');
 
-        var my_statuses = new Statuses();
+        var statuses = new Statuses();
         var view = new SimpleStatusesView({
-            collection: my_statuses
+            collection: statuses
         });
         this.changePage(view);
 
         url = "https://api.weibo.com/2/statuses/user_timeline.json";
         myData = {
             access_token: user.get("token"),
+            uid: userId,
             page: 1,
             count: 20
         };
-        my_statuses.fetch({
+        statuses.fetch({
             url: url,
             data: myData,
             success: function(response) {
@@ -123,7 +123,7 @@ define(['jquery',
         });
     },
 
-    friends: function() {
+    friends: function(userId) {
         console.log('#friends');
 
         var collection = new Friends();
@@ -135,7 +135,7 @@ define(['jquery',
         url = "https://api.weibo.com/2/friendships/friends.json";
         myData = {
             access_token: window.user.get("token"),
-            uid: window.user.get("id"),
+            uid: userId,
             count: 20
         };
         collection.fetch({
@@ -147,7 +147,7 @@ define(['jquery',
         });
     },
 
-    followers: function() {
+    followers: function(userId) {
         console.log('#followers');
 
         var collection = new Friends();
@@ -159,7 +159,7 @@ define(['jquery',
         url = "https://api.weibo.com/2/friendships/followers.json";
         myData = {
             access_token: window.user.get("token"),
-            uid: user.get("id"),
+            uid: userId,
             count: 20
         };
         collection.fetch({
@@ -171,7 +171,7 @@ define(['jquery',
         });
     },
 
-    bi_followers: function() {
+    bi_followers: function(userId) {
         console.log('#bi_followers');
 
         var collection = new Friends();
@@ -183,7 +183,7 @@ define(['jquery',
         url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
         myData = {
             access_token: window.user.get("token"),
-            uid: user.get("id"),
+            uid: userId,
             count: 20
         };
         collection.fetch({
@@ -195,7 +195,7 @@ define(['jquery',
         });
     },
 
-    collection: function() {
+    collection: function(userId) {
         console.log('#collection');
 
         var collects = new CollectStatuses();
@@ -220,9 +220,17 @@ define(['jquery',
     },
 
     user: function(id) {
-        console.log("#user");
+        console.log("#user: " + id);
+        var user;
+        if(id) {
+          user = new User({id: id});
+        } else {
+          user = window.user;
+        }
 
-        var userView = new UserView();
+        var userView = new UserView({
+          model: user
+        });
         this.changePage(userView);
     },
 
@@ -317,7 +325,7 @@ define(['jquery',
 
       alert('登陆成功');
 
-      window.appRouter.navigate("home", {
+      window.appRouter.navigate("#home", {
         trigger: true,
         replace: true
       });

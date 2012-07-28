@@ -9,22 +9,29 @@ define(['jquery',
        'utils'
   ], function($, _, Backbone, template, StatusView, Statuses, User) {
 
+  loadCss("css/home.css");
+
   var StatusesView = Backbone.View.extend({
       events: {
-        "click img.status_avatar": "avatarClicked",
-        "click .status_list_more": "loadMore",
-        "click img.status_pic": "statusPicClicked",
-        "click img.retweeted_status_pic": "retweetedStatusPicClicked"
+        "click .status_list_more": "loadMore"
       },
 
       initialize: function() {
           _.bindAll(this);
 
+          /*
+          _.bind(this.render, this);
+          _.bind(this.addOne, this);
+          _.bind(this.addAll, this);
+          _.bind(this.refresh, this);
+          _.bind(this.loadMore, this);
+         */
+
           this.curPage = 1;
           this.countOnePage = 20;
 
-          this.collection.bind('add', this.addOne);
-          this.collection.bind('reset', this.addAll);
+          this.collection.bind('add', this.addOne, this);
+          this.collection.bind('reset', this.addAll, this);
       },
 
       render: function(options) {
@@ -66,6 +73,36 @@ define(['jquery',
               model: status,
               id: "statuses-row-" + status.id
           });
+          view.bind("statusPicClicked", function(id) {
+              var model = this.collection.get(id);
+              var middlePic = model.get("bmiddle_pic");
+              var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
+              tmp.click(function() {
+                tmp.remove();
+              });
+              $("body").append(tmp);
+          }, this);
+          view.bind("retweetedStatusPicClicked", function(id) {
+              var model = this.collection.get(id);
+              var middlePic = model.get("retweeted_status").bmiddle_pic;
+              var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
+              tmp.click(function() {
+                tmp.remove();
+              });
+              $("body").append(tmp);
+          }, this);
+          view.bind("avatarClicked", function(id) {
+              var model = this.collection.get(id);
+              window.appRouter.navigate("#user/"+model.get("user").id, {
+                trigger: true
+              });
+          }, this);
+          view.bind("itemClicked", function(id) {
+              var model = this.collection.get(id);
+              window.appRouter.navigate("#status/"+id, {
+                trigger: true
+              });
+          }, this);
           this.$('#status-list').append(view.render().el);
       },
 
@@ -90,19 +127,8 @@ define(['jquery',
           this.render({
               add: true
           });
-      },
-
-      avatarClicked: function() {
-        console.log("avatarClicked");
-      },
-
-      statusPicClicked: function() {
-        console.log("statusPicClicked");
-      },
-
-      retweetedStatusPicClicked: function() {
-        console.log("retweetedStatusPicClicked");
       }
+
   });
 
   var HomeView = Backbone.View.extend({
@@ -140,7 +166,7 @@ define(['jquery',
     },
 
     send: function() {
-      window.appRouter.navigate("post_status", {
+      window.appRouter.navigate("#status/new", {
         trigger: true
       });
     },
