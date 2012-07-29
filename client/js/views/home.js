@@ -68,23 +68,19 @@ define(['jquery',
               var model = this.collection.get(id);
               var middlePic = model.get("bmiddle_pic");
               var tmp = $(_.template(imageviewer)({pic: middlePic}));
-              tmp.page();
-              //var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
+              $("body").append(tmp);
               tmp.click(function() {
                 tmp.remove();
               });
-              $("body").append(tmp);
-              //$.mobile.changePage(tmp, {changeHash: false, transition: 'none', reloadPage: false, });
-              //$.mobile.loadPage(tmp);
           }, this);
           view.bind("retweetedStatusPicClicked", function(id) {
               var model = this.collection.get(id);
               var middlePic = model.get("retweeted_status").bmiddle_pic;
-              var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
+              var tmp = $(_.template(imageviewer)({pic: middlePic}));
+              $("body").append(tmp);
               tmp.click(function() {
                 tmp.remove();
               });
-              $("body").append(tmp);
           }, this);
           view.bind("avatarClicked", function(id) {
               var model = this.collection.get(id);
