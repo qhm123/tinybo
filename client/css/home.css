@@ -12,3 +12,15 @@
 
 img.center_image {
 }
+
+.imageviewer_overlay {
+  z-index: 1020;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  text-align: center;
+  overflow-y: scroll;
+}

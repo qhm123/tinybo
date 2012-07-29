@@ -23,16 +23,22 @@ define(['jquery',
   });
 
   var FriendsView = Backbone.View.extend({
+      events: {
+        "click .status_list_more": "loadMore"
+      },
+
       template: _.template(template),
 
-      initialize: function() {
+      initialize: function(options) {
           _.bindAll(this);
 
           this.collection.bind('add', this.addOne);
           this.collection.bind('reset', this.addAll);
+
+          this.userId = options.userId;
       },
 
-      render: function(options, callback) {
+      render: function(options) {
           console.log("render");
 
           $(this.el).html(this.template());
@@ -52,6 +58,30 @@ define(['jquery',
 
           this.$('ul[data-role="listview"]').empty();
           this.collection.each(this.addOne);
+      },
+
+      loadMore: function() {
+          console.log("loadMore");
+
+          var thisView = this;
+
+          this.trigger("loadMore");
+
+          var myData = {
+              access_token: window.user.get("token"),
+              uid: this.userId,
+              cursor: this.collection.next_cursor,
+              count: 20
+          };
+          this.collection.fetch({
+              url: this.collection.url,
+              data: myData,
+              add: true,
+              success: function(response) {
+                  thisView.$('ul[data-role="listview"]').listview('refresh');
+              }
+          });
+
       }
   });
 

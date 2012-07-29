@@ -1,5 +1,5 @@
 <div data-role="header" data-position="fixed">
-  <h1>我的消息</h1>
+  <h1>最近消息</h1>
 
   <div data-role="navbar">
     <ul>
@@ -15,9 +15,9 @@
 <div data-role="footer" data-position="fixed">
   <div data-role="navbar">
     <ul>
-      <li><a href="#home" data-icon="custom">首页</a></li>
-      <li><a href="#message" class="ui-btn-active" data-icon="custom">信息</a></li>
-      <li><a href="#user" data-icon="custom">我的资料</a></li>
+      <li><a href="#home" class="tab_home" data-icon="custom">首页</a></li>
+      <li><a href="#message" class="tab_message ui-btn-active" data-icon="custom">信息</a></li>
+      <li><a href="#user/<%= window.user.get("id") %>" class="tab_user" data-icon="custom">我的资料</a></li>
     </ul>
   </div>
 </div>

@@ -9,6 +9,7 @@ define(['jquery',
       model: CollectStatus,
 
       parse: function(response) {
+          this.page++;
           return response.favorites;
       }
   });

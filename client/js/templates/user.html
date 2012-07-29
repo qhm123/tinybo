@@ -9,9 +9,9 @@
 <div data-role="footer" data-position="fixed">
   <div data-role="navbar">
     <ul>
-      <li><a href="#home" data-icon="custom">首页</a></li>
-      <li><a href="#message" data-icon="custom">信息</a></li>
-      <li><a href="#user" class="ui-btn-active" data-icon="custom">我的资料</a></li>
+      <li><a href="#home" class="tab_home" data-icon="custom">首页</a></li>
+      <li><a href="#message" class="tab_message" data-icon="custom">信息</a></li>
+      <li><a href="#user/<%= window.user.get("id") %>" class="tab_user ui-btn-active" data-icon="custom">我的资料</a></li>
     </ul>
   </div>
 </div>

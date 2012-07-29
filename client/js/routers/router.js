@@ -49,10 +49,6 @@ define(['jquery',
 
     initialize: function() {
       /*
-        $('.back_button').live('click', function(event) {
-            window.history.back();
-            return false;
-        });
        */
         this.firstPage = true;
         console.log("initialize");
@@ -102,121 +98,66 @@ define(['jquery',
         console.log('#user_statuses');
 
         var statuses = new Statuses();
+        statuses.url = "https://api.weibo.com/2/statuses/user_timeline.json";
         var view = new SimpleStatusesView({
-            collection: statuses
+            collection: statuses,
+            userId: userId
         });
         this.changePage(view);
-
-        url = "https://api.weibo.com/2/statuses/user_timeline.json";
-        myData = {
-            access_token: user.get("token"),
-            uid: userId,
-            page: 1,
-            count: 20
-        };
-        statuses.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
-    },
-
-    friends: function(userId) {
-        console.log('#friends');
-
-        var collection = new Friends();
-        var view = new FriendsView({
-            collection: collection
-        });
-        this.changePage(view);
-
-        url = "https://api.weibo.com/2/friendships/friends.json";
-        myData = {
-            access_token: window.user.get("token"),
-            uid: userId,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
-    },
-
-    followers: function(userId) {
-        console.log('#followers');
-
-        var collection = new Friends();
-        var view = new FriendsView({
-            collection: collection
-        });
-        this.changePage(view);
-
-        url = "https://api.weibo.com/2/friendships/followers.json";
-        myData = {
-            access_token: window.user.get("token"),
-            uid: userId,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
-    },
-
-    bi_followers: function(userId) {
-        console.log('#bi_followers');
-
-        var collection = new Friends();
-        var view = new FriendsView({
-            collection: collection
-        });
-        this.changePage(view);
-
-        url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
-        myData = {
-            access_token: window.user.get("token"),
-            uid: userId,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
+        view.loadMore();
     },
 
     collection: function(userId) {
         console.log('#collection');
 
         var collects = new CollectStatuses();
+        collects.url = "https://api.weibo.com/2/favorites.json";
         var view = new CollectionView({
-            collection: collects
+            collection: collects,
+            userId: userId
+        });
+        this.changePage(view);
+        view.loadMore();
+    },
+
+    friends: function(userId) {
+        console.log('#friends');
+
+        var collection = new Friends();
+        collection.url = "https://api.weibo.com/2/friendships/friends.json";
+        var view = new FriendsView({
+            collection: collection,
+            userId: userId
+        });
+        this.changePage(view);
+        view.loadMore();
+    },
+
+    followers: function(userId) {
+        console.log('#followers');
+
+        var collection = new Friends();
+        collection.url = "https://api.weibo.com/2/friendships/followers.json";
+        var view = new FriendsView({
+            collection: collection,
+            userId: userId
+        });
+        this.changePage(view);
+        view.loadMore();
+
+    },
+
+    bi_followers: function(userId) {
+        console.log('#bi_followers');
+
+        // XXX: bilateral接口与friends接口分页参数不同，此处不能使用Frineds Collection
+        var collection = new Friends();
+        collection.url = "https://api.weibo.com/2/friendships/friends/bilateral.json";
+        var view = new FriendsView({
+            collection: collection
         });
         this.changePage(view);
 
-        url = "https://api.weibo.com/2/favorites.json";
-        myData = {
-            access_token: window.user.get("token"),
-            page: 1,
-            count: 20
-        };
-        collects.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
     },
 
     user: function(id) {
@@ -252,60 +193,32 @@ define(['jquery',
             }));
           }
         });
-        /*
-        var status = statuses.where({
-            idstr: id
-        })[0];
-       */
-
     },
 
-    status_replies: function(id) {
+    status_replies: function(statusId) {
         console.log('#show_replies');
 
         var collection = new Replies();
+        collection.url = "https://api.weibo.com/2/comments/show.json";
         var view = new SimpleReplyView({
-            collection: collection
+            collection: collection,
+            statusId: statusId
         });
-        window.appRouter.changePage(view);
-
-        url = "https://api.weibo.com/2/comments/show.json";
-        myData = {
-            access_token: window.user.get("token"),
-            id: id,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
+        this.changePage(view);
+        view.loadMore();
     },
 
-    status_reposts: function(id) {
+    status_reposts: function(statusId) {
         console.log('#show_reposts');
 
         var collection = new Reposts();
+        collection.url = "https://api.weibo.com/2/statuses/repost_timeline.json";
         var view = new SimpleRepostView({
-            collection: collection
+            collection: collection,
+            statusId: statusId
         });
-        window.appRouter.changePage(view);
-
-        url = "https://api.weibo.com/2/statuses/repost_timeline.json";
-        myData = {
-            access_token: window.user.get("token"),
-            id: id,
-            count: 20
-        };
-        collection.fetch({
-            url: url,
-            data: myData,
-            success: function(response) {
-                view.$('ul[data-role="listview"]').listview('refresh');
-            }
-        });
+        this.changePage(view);
+        view.loadMore();
     },
 
     oauth: function(url) {

@@ -26,8 +26,8 @@ require.config({
 });
 
 
-require(['routers/router', 'jquery', 'models/user', 'jqmconfig', 'proxy'
-  ], function(AppRouter, $, User) {
+require(['jquery', 'routers/router', 'models/user', 'jqmconfig', 'proxy'
+  ], function($, AppRouter, User) {
   console.log("main.js");
 
   function deviceReady() {

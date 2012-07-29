@@ -2,12 +2,13 @@ define(['jquery',
        'underscore',
        'backbone',
        'text!templates/home.html',
+       'text!templates/imageviewer.html',
        'views/status',
        'collections/statuses',
        'models/user',
        'jqm',
        'utils'
-  ], function($, _, Backbone, template, StatusView, Statuses, User) {
+  ], function($, _, Backbone, template, imageviewer, StatusView, Statuses, User) {
 
   loadCss("css/home.css");
 
@@ -18,14 +19,6 @@ define(['jquery',
 
       initialize: function() {
           _.bindAll(this);
-
-          /*
-          _.bind(this.render, this);
-          _.bind(this.addOne, this);
-          _.bind(this.addAll, this);
-          _.bind(this.refresh, this);
-          _.bind(this.loadMore, this);
-         */
 
           this.curPage = 1;
           this.countOnePage = 20;
@@ -51,7 +44,6 @@ define(['jquery',
           }
 
           if (options && options.add) {
-              console.log("add");
               this.collection.fetch({
                   url: url,
                   data: myData,
@@ -59,7 +51,6 @@ define(['jquery',
                   success: fetchFinished
               });
           } else {
-              console.log("refresh");
               this.collection.fetch({
                   url: url,
                   data: myData,
@@ -76,11 +67,15 @@ define(['jquery',
           view.bind("statusPicClicked", function(id) {
               var model = this.collection.get(id);
               var middlePic = model.get("bmiddle_pic");
-              var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
+              var tmp = $(_.template(imageviewer)({pic: middlePic}));
+              tmp.page();
+              //var tmp = $("<div class='overlay'><img class='center_image' src='"+middlePic+"'></div>");
               tmp.click(function() {
                 tmp.remove();
               });
               $("body").append(tmp);
+              //$.mobile.changePage(tmp, {changeHash: false, transition: 'none', reloadPage: false, });
+              //$.mobile.loadPage(tmp);
           }, this);
           view.bind("retweetedStatusPicClicked", function(id) {
               var model = this.collection.get(id);
@@ -135,7 +130,8 @@ define(['jquery',
 
     events: {
       "click #send": "send",
-      "click #refresh": "refresh"
+      "click #refresh": "refresh",
+      "click #about": "about"
     },
 
     template: _.template(template),
@@ -173,6 +169,10 @@ define(['jquery',
 
     refresh: function() {
       this.statusesView.refresh();
+    },
+
+    about: function() {
+      alert("我要发微博，是一款基于HTML5开发的手机微博应用。");
     }
 
   });

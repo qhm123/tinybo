@@ -60,8 +60,11 @@ define(['jquery',
       },
 
       parse: function(response) {
+          this.page++;
           return response.statuses;
-      }
+      },
+
+      page: 1
 
   });
 

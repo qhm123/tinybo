@@ -1,6 +1,6 @@
-#home .ui-icon { background:  url(../img/glyphish-icons/53-house.png) 50% 50% no-repeat; background-size: 24px 22px; }
-#recommend .ui-icon { background:  url(../img/glyphish-icons/18-envelope.png) 50% 50% no-repeat; background-size: 24px 22px; }
-#me .ui-icon { background:  url(../img/glyphish-icons/111-user.png) 50% 50% no-repeat; background-size: 24px 22px; }
+.tab_home .ui-icon { background:  url(../img/glyphish-icons/53-house.png) 50% 50% no-repeat; background-size: 24px 22px; }
+.tab_message .ui-icon { background:  url(../img/glyphish-icons/18-envelope.png) 50% 50% no-repeat; background-size: 24px 22px; }
+.tab_user .ui-icon { background:  url(../img/glyphish-icons/111-user.png) 50% 50% no-repeat; background-size: 24px 22px; }
 
 .big_button_footer .ui-btn {padding:10px;width:80px;}
 
@@ -11,6 +11,10 @@
 .status-bottom span {font-size:12px;}
 
 .status-bottom-right {float:right;margin-top:2px;}
+
+.ui-btn-text {
+  color: black;
+}
 
 .ui-shadow,
 .ui-btn-up-a,
@@ -56,15 +60,15 @@
 }
 
 .status_list_more_text {
-  color: blue;
+  color: black;
   font-size: 20px;
   margin-top: 15px;
   text-align: center;
   display: block;
-  line-height: 60px;
+  line-height: 50px;
 }
 
 .status_list_more {
-  height: 60px;
+  height: 50px;
   margin: -15px;
 }

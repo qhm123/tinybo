@@ -23,8 +23,13 @@ define(['jquery',
       },
 
       parse: function(response) {
+          this.next_cursor = response.next_cursor;
+          this.previous_cursor = response.previous_cursor;
+          this.total_number = response.total_number;
           return response.users;
-      }
+      },
+
+      next_cursor: 0
   });
 
   return Friends;

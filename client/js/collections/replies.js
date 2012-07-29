@@ -23,8 +23,11 @@ define(['jquery',
       },
 
       parse: function(response) {
+          this.page++;
           return response.comments;
-      }
+      },
+
+      page: 1
   });
 
   return Replies;

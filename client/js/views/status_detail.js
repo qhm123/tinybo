@@ -38,7 +38,7 @@ define(['jquery', 'underscore', 'backbone',
 
       reply: function() {
           var view = this;
-          var content = prompt("评论内容");
+          var content = prompt("评论内容", "评论");
           console.log("content: " + content);
           if(content) {
               $.mobile.showPageLoadingMsg("e", "Loading...", true);
@@ -54,55 +54,15 @@ define(['jquery', 'underscore', 'backbone',
                 $.mobile.hidePageLoadingMsg();
                 alert('评论失败');
               });
+          } else if(content != null && content.trim() == "") {
+            alert('请输入评论内容');
           }
 
-          /*
-          $.mobile.showPageLoadingMsg();
-
-          var view = this;
-          console.log("this: " + this);
-          console.log(this);
-          $(this).simpledialog({
-              'mode': 'string',
-              'prompt': 'What do you say?',
-              'useDialogForceTrue': true,
-              'useModal': true,
-              'useDialog': true,
-              'cleanOnClose': true,
-              'buttons': {
-                  'OK': {
-                      click: function() {
-                          $.mobile.showPageLoadingMsg();
-
-                          var str = $(view).attr('data-string');
-                          console.log("str: " + str);
-
-                          sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
-                            access_token: user.get("token"),
-                            id: view.model.id,
-                            comment: str
-                          }, function(data) {
-                            console.log(data);
-                            $.mobile.hidePageLoadingMsg();
-                            alert('评论成功');
-                          }, function() {
-                            $.mobile.hidePageLoadingMsg();
-                            alert('评论失败');
-                          });
-
-                          $(view).simpledialog('close');
-                      }
-                  }
-              }
-          });
-
-          $.mobile.hidePageLoadingMsg();
-          */
       },
 
       repost: function() {
           var view = this;
-          var content = prompt("评论内容");
+          var content = prompt("评论内容", "转发");
           console.log("content: " + content);
 
           if(content) {
@@ -120,38 +80,9 @@ define(['jquery', 'underscore', 'backbone',
                 console.log(data);
                 alert('转发失败');
               });
+          } else if(content != null && content.trim() == "") {
+            alert('请输入转发内容');
           }
-          /*
-          console.log("this: " + this);
-          console.log(this);
-          $(this).simpledialog({
-              'mode': 'string',
-              'prompt': 'What do you say?',
-              'useDialogForceTrue': true,
-              'useModal': true,
-              'useDialog': true,
-              'cleanOnClose': true,
-              'buttons': {
-                  'OK': {
-                      click: function() {
-                          var str = $(view).attr('data-string');
-                          console.log("str: " + str);
-
-                          sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
-                            access_token: user.get("token"),
-                            id: view.model.id,
-                            status: str
-                          }, function(data) {
-                            console.log(data);
-                            alert('转发成功');
-                          }, function() {
-                            alert('转发失败');
-                          });
-                      }
-                  }
-              }
-          });
-          */
       },
 
       collect: function() {
@@ -160,7 +91,7 @@ define(['jquery', 'underscore', 'backbone',
               access_token: window.user.get("token"),
               id: view.model.id
           }, function(data) {
-              alert('收藏成功' + data);
+              alert('收藏成功');
           }, function() {
               alert('收藏失败');
           });

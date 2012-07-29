@@ -22,8 +22,11 @@ define(['jquery',
       },
 
       parse: function(response) {
+          this.page++;
           return response.reposts;
-      }
+      },
+
+      page: 1
 
   });
 
