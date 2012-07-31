@@ -5,13 +5,13 @@ define(['jquery',
         'text!templates/message_at.html',
         'text!templates/message_reply.html',
         'text!templates/reply_item.html',
-        'collections/statuses',
+        'collections/metions',
         'collections/replies',
         'views/status',
         'jqm',
         'utils'
   ], function($, _, Backbone, messageTemplate, messageAtTemplate,
-             messageReplyTemplate, replyItemTemplate, Statuses,
+             messageReplyTemplate, replyItemTemplate, Metions,
              Replies, StatusView) {
 
   console.log("message.js");
@@ -167,7 +167,7 @@ define(['jquery',
 
           $(this.el).find("#message-content").empty();
 
-          var messages = new Statuses();
+          var messages = new Metions();
           var view = new MessageAtView({
               collection: messages
           });

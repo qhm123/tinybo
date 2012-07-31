@@ -1,6 +1,7 @@
 define(['jquery',
        'backbone',
-       'models/status'
+       'models/status',
+       'md5'
   ], function($, Backbone, Status) {
 
   var Statuses = Backbone.Collection.extend({
@@ -11,23 +12,22 @@ define(['jquery',
           maxRefresh: Infinity
       },
 
-      getKey: function() {
-          return localStorage.getItem("uid") + ":statuses";
+      getKey: function(options) {
+          var md5 = CryptoJS.MD5(options.url);
+          var data_md5 = CryptoJS.MD5(JSON.stringify(options.data));
+          return localStorage.getItem("uid") + ":statuses:" + md5 + ":" + data_md5;
       },
 
       sync: function(method, model, options) {
           options || (options = {});
 
           var key, now, timestamp, refresh;
-          key = this.getKey();
+          key = this.getKey(options);
           if(key) {
               now = new Date().getTime();
               timestamp = localStorage.getItem(key + ":timestamp");
               refresh = options.forceRefresh;
-              // TODO: FIXED ME
-              refresh = true;
               if(refresh || !timestamp || ((now - timestamp) > this.constants.maxRefresh)) {
-                  $.mobile.showPageLoadingMsg("e", "Loading...", true);
                   try {
                     sina.weibo.get(options.url, options.data, function(response) {
                       console.log("sync success");
@@ -38,10 +38,8 @@ define(['jquery',
                       localStorage.setItem(key + ":timestamp", now);
 
                       options.success(JSON.parse(response));
-                      $.mobile.hidePageLoadingMsg();
                     }, function(response) {
                       console.log('error: ' + response);
-                      $.mobile.hidePageLoadingMsg();
                     });
                   } catch (e) {
                     console.log(e);

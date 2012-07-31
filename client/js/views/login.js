@@ -1,8 +1,9 @@
 define(['jquery',
        'underscore',
        'backbone',
-       'text!templates/login.html'
-  ], function($, _, Backbone, loginTemplate) {
+       'text!templates/login.html',
+       'models/user'
+  ], function($, _, Backbone, loginTemplate, User) {
 
   var LoginView = Backbone.View.extend({
       template: _.template(loginTemplate),

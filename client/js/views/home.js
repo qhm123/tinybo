@@ -107,6 +107,12 @@ define(['jquery',
       },
 
       refresh: function() {
+          for(var item in localStorage) {
+            if(item.indexOf(window.user.get("id") + ":statuses") >= 0) {
+              delete localStorage[item];
+            }
+          }
+
           this.curPage = 1;
 
           this.render();

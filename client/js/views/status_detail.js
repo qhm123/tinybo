@@ -41,17 +41,14 @@ define(['jquery', 'underscore', 'backbone',
           var content = prompt("评论内容", "评论");
           console.log("content: " + content);
           if(content) {
-              $.mobile.showPageLoadingMsg("e", "Loading...", true);
               sina.weibo.post('https://api.weibo.com/2/comments/create.json', {
                 access_token: window.user.get("token"),
                 id: view.model.id,
                 comment: content
               }, function(data) {
-                $.mobile.hidePageLoadingMsg();
                 console.log(data);
                 alert('评论成功');
               }, function() {
-                $.mobile.hidePageLoadingMsg();
                 alert('评论失败');
               });
           } else if(content != null && content.trim() == "") {
@@ -66,17 +63,14 @@ define(['jquery', 'underscore', 'backbone',
           console.log("content: " + content);
 
           if(content) {
-              $.mobile.showPageLoadingMsg("e", "Loading...", true);
               sina.weibo.post('https://api.weibo.com/2/statuses/repost.json', {
                 access_token: window.user.get("token"),
                 id: view.model.id,
                 status: content
               }, function(data) {
-                $.mobile.hidePageLoadingMsg();
                 console.log(data);
                 alert('转发成功');
               }, function() {
-                $.mobile.hidePageLoadingMsg();
                 console.log(data);
                 alert('转发失败');
               });

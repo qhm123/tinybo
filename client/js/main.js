@@ -21,8 +21,11 @@ require.config({
     backbone_localstorage: 'libs/backbone.localStorage',
     utils: 'utils',
     proxy: 'libs/proxy',
-    text: 'libs/text'
-  }
+    text: 'libs/text',
+    md5: 'libs/md5'
+  },
+
+  waitSeconds: 20
 });
 
 
@@ -32,39 +35,16 @@ require(['jquery', 'routers/router', 'models/user', 'jqmconfig', 'proxy'
 
   function deviceReady() {
 
-      //$.mobile.initializePage();
       console.log("deviceready");
 
       if(typeof sina.weibo == "undefined") {
           console.log("sina.weibo is undefined");
           sina.weibo = {};
-          /*
-          //var ori_weibo_get = sina.weibo.get;
-          sina.weibo.get = function(url, params, success, fail) {
-              $.mobile.showPageLoadingMsg("e", "Loading...", true);
-              if(success) {
-                  var ori_success = success;
-                  success = function(response) {
-                      $.mobile.hidePageLoadingMsg();
-                      console.log("success");
-                      ori_success(response);
-                  };
-              }
-              if(fail) {
-                  var ori_fail = fail;
-                  fail = function() {
-                      $.mobile.hidePageLoadingMsg();
-                      console.log("fail");
-                      ori_fail();
-                  };
-              }
-              //ori_weibo_get(url, params, success, fail);
-          };
-          */
       }
 
       sina.ajax.setup("http://tinybo.sinaapp.com/server/proxy.php");
       sina.weibo.get = function(url, params, success, fail) {
+              $.mobile.showPageLoadingMsg("e", "Loading...", true);
               var paramStr = "";
               var paramCount = 0;
               for(var param in params) {
@@ -78,18 +58,22 @@ require(['jquery', 'routers/router', 'models/user', 'jqmconfig', 'proxy'
               var newUrl = url + "?" + paramStr;
               console.log("newUrl: " + newUrl);
               newSuccess = function(status, response) {
-                  //console.log("response: " + response);
                   success(response);
+                  $.mobile.hidePageLoadingMsg();
               };
               sina.ajax.get(newUrl, newSuccess);
       };
       sina.weibo.post =  function(url, params, success, fail) {
+              $.mobile.showPageLoadingMsg("e", "Loading...", true);
               newSuccess = function(status, response) {
-                  console.log("response: " + response);
                   success(response);
+                  $.mobile.hidePageLoadingMsg();
               };
               sina.ajax.post(url, params, newSuccess);
       };
+      sina.weibo.logout = function(callback) {
+          callback();
+      }
 
       window.user = new User();
       window.appRouter = new AppRouter();
@@ -99,10 +83,14 @@ require(['jquery', 'routers/router', 'models/user', 'jqmconfig', 'proxy'
   console.log("userAgent: " + navigator.userAgent);
   if(/(Android|iPhone|iPod|iPad)/.test(navigator.userAgent)) {
     console.log("android or ios");
-    document.addEventListener('deviceready', function() {
-        //setTimeout(function(){deviceReady();}, 1000);
-        deviceReady();
-    }, false);
+    if(window.cordova) {
+      document.addEventListener('deviceready', function() {
+          //setTimeout(function(){deviceReady();}, 1000);
+          deviceReady();
+      }, false);
+    } else {
+      $(function(){ deviceReady(); });
+    }
   } else {
     $(function(){ deviceReady(); });
   }
