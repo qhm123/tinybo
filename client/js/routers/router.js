@@ -59,6 +59,15 @@ define(['jquery',
     },
 
     home: function() {
+        if(sina && sina.updater) {
+          sina.updater.check();
+        }
+
+        if(sina && sina.alarm) {
+          // check new message every 15 minute
+          sina.alarm.start(Date.now(), 15 * 60 * 1000, "js/callback.html", "callback", true);
+        }
+
         console.log('#home');
 
         var view = new HomeView();
@@ -79,7 +88,6 @@ define(['jquery',
 
     login: function() {
         console.log('#login');
-
 
         if(!User.isTokenExpired()) {
             window.user = new User();
