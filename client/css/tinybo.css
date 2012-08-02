@@ -72,3 +72,21 @@
   height: 50px;
   margin: -15px;
 }
+
+.ui-li-desc {
+  /*font-size: 13px;*/
+  text-shadow: none;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  border-radius: 0;
+}
+
+.ui-body-c {
+  color: black;
+}
+
+@media screen and (min-width: 480px) {
+  .ui-li-desc {
+    font-size: 13px;
+  }
+}
