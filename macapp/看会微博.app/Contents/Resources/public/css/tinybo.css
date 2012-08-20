@@ -1,0 +1,92 @@
+.tab_home .ui-icon { background:  url(../img/glyphish-icons/53-house.png) 50% 50% no-repeat; background-size: 24px 22px; }
+.tab_message .ui-icon { background:  url(../img/glyphish-icons/18-envelope.png) 50% 50% no-repeat; background-size: 24px 22px; }
+.tab_user .ui-icon { background:  url(../img/glyphish-icons/111-user.png) 50% 50% no-repeat; background-size: 24px 22px; }
+
+.big_button_footer .ui-btn {padding:10px;width:80px;}
+
+.big_button_footer_five .ui-btn {padding-top:10px;padding-bottom:10px;width:58px;}
+
+#post_content {height:100px;}
+
+.status-bottom span {font-size:12px;}
+
+.status-bottom-right {float:right;margin-top:2px;}
+
+.ui-btn-text {
+  color: black;
+}
+
+.ui-shadow,
+.ui-btn-up-a,
+.ui-btn-hover-a,
+.ui-btn-down-a,
+.ui-body-b,
+.ui-btn-up-b,
+.ui-btn-hover-b,
+.ui-btn-down-b,
+.ui-bar-c,
+.ui-body-c,
+.ui-btn-up-c,
+.ui-btn-hover-c,
+.ui-btn-down-c,
+.ui-bar-c,
+.ui-body-d,
+.ui-btn-up-d,
+.ui-btn-hover-d,
+.ui-btn-down-d,
+.ui-bar-d,
+.ui-body-e,
+.ui-btn-up-e,
+.ui-btn-hover-e,
+.ui-btn-down-e,
+.ui-bar-e,
+.ui-overlay-shadow,
+.ui-shadow,
+.ui-btn-active,
+.ui-body-a,
+.ui-bar-a {
+ text-shadow: none;
+ box-shadow: none;
+ -webkit-box-shadow: none;
+ border-radius: 0;
+}
+
+.overlay {
+  z-index: 2000;
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.status_list_more_text {
+  color: black;
+  font-size: 20px;
+  margin-top: 15px;
+  text-align: center;
+  display: block;
+  line-height: 50px;
+}
+
+.status_list_more {
+  height: 50px;
+  margin: -15px;
+}
+
+.ui-li-desc {
+  /*font-size: 13px;*/
+  text-shadow: none;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  border-radius: 0;
+}
+
+.ui-body-c {
+  color: black;
+}
+
+@media screen and (min-width: 480px) {
+  .ui-li-desc {
+    font-size: 13px;
+  }
+}

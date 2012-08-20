@@ -1,0 +1,25 @@
+<div id="header" data-role="header" data-position="fixed" data-tap-toggle="false">
+  <!--<a id="send">发微博</a>-->
+  <a id="about">关于</a>
+  <h1>我的微博</h1>
+  <a id="refresh">刷新</a>
+</div>
+
+<div id="wrapper" data-role="content">
+  <div id="statuses">
+    <ul id="status-list" data-role="listview"></ul>
+    <div class="status_list_more">
+      <span class="status_list_more_text">加载更多</span>
+    </div>
+  </div>
+</div>
+
+<div data-role="footer" data-position="fixed" data-tap-toggle="false">
+  <div data-role="navbar">
+    <ul>
+      <li><a href="#home" class="tab_home ui-btn-active" data-icon="custom">首页</a></li>
+      <li><a href="#message" class="tab_message" data-icon="custom">信息</a></li>
+      <li><a href="#user/<%= window.user.get('id') %>" class="tab_user" data-icon="custom">我的资料</a></li>
+    </ul>
+  </div>
+</div>

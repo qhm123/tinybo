@@ -1,0 +1,20 @@
+div#smiles {
+  z-index: 1001;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ccf;
+}
+
+div#smiles div {
+  float: left;
+  padding: 5px;
+}
+
+#smiles .close {
+  float: left;
+  padding: 5px;
+  width: 32px;
+  height: 37px;
+}

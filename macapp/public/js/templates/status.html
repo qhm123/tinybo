@@ -1,0 +1,30 @@
+<!--<a href="#status_detail/<%= id %>">-->
+  <% if (deleted) { %>
+    <p><%= text %></p>
+  <% } else { %>
+    <img class="status_avatar" src='<%= user.profile_image_url %>' data-id="<%= id %>" />
+    <h3><%= user.screen_name %></h3>
+    <p><%= text %></p>
+    <p class="ui-li-aside"><%= (new Date(created_at)).format("dd日 hh:mm:ss") %></p>
+    <% if (thumbnail_pic) { %>
+      <p style="margin-top:6px;"><img class="status_pic" src='<%= thumbnail_pic %>' data-id="<%= id %>" /></p>
+    <% } %>
+    <% if (retweeted_status.text) { %>
+      <% if (retweeted_status.deleted) { %>
+        <p><%= retweeted_status.text %></p>
+      <% } else { %>
+        <div style="background-color:#eee;margin-top:8px;">
+        <p style="padding:10px;padding-bottom:0;"><span style="color:blue;">@<%= retweeted_status.user.screen_name %></span>(<%= (new Date(retweeted_status.created_at)).format("dd日 hh:mm:ss") %>): <%= retweeted_status.text %></p>
+        <% if (retweeted_status.thumbnail_pic) { %>
+        <p style="padding:10px;"><img class="retweeted_status_pic" src='<%= retweeted_status.thumbnail_pic %>' data-id="<%= id %>" /></p>
+        <% } %>
+        </div>
+      <% } %>
+    <% } %>
+    <div class="status-bottom">
+      <span>来自:<%= $(source)[0].text %></span>
+      <span class="status-bottom-right">转(<%= reposts_count %>)</span>
+      <span class="status-bottom-right">评(<%= comments_count %>)</span>
+    </div>
+  <% } %>
+<!--</a>-->

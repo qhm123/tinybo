@@ -1,0 +1,65 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <script src="./libs/jquery-1.7.1.min.js"></script>
+  <script>
+
+    $.ajaxSetup({
+      cache: false
+    });
+    
+    console.log("in callback");
+
+    function callback() {
+      console.log("callback.html callback");
+      console.log("uid: " + localStorage.getItem("uid"));
+
+      // 必须使用同步ajax请求
+      var url = "https://rm.api.weibo.com/2/remind/unread_count.json?uid="+localStorage.getItem("uid")+"&source=2840009992&access_token="+localStorage.getItem("access_token");
+      console.log("url: " + url);
+      
+      var text = $.ajax({
+          url: url,
+          async:false
+      }).responseText;
+      
+      console.log(text);
+      var data = JSON.parse(text);
+      
+      var message = "";
+      if(data.follower > 0) {
+        message += "新粉丝: " + data.follower;
+      }
+      if(data.cmt > 0) {
+        message += "\n新评论: " + data.cmt;
+      }
+      if(data.mention_status > 0) {
+        message += "\n新提及: " + data.mention_status;
+      }
+      if(data.mention_cmt > 0) {
+        message += "\n新提及评论: " + data.mention_cmt;
+      }
+      
+      if(message != "") {
+        sina.utils.keyguard("disable");
+        sina.utils.screen("wakeup");
+
+        sina.notification.notify({
+          "saeAppName": "tinybo",
+          "redirectUrl": "index.html",
+          "tickerText": "有新消息",
+          "contentTitle": "新消息",
+          "contentText": message,
+          "id": 1
+        });
+      }
+    }
+  </script>
+</body>
+</html>
+

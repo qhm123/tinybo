@@ -1,0 +1,18 @@
+<a href="#status/<%= status.id %>">
+    <% if (status.deleted) { %>
+      <p><%= status.text %></p>
+    <% } else { %>
+      <img src='<%= status.user.profile_image_url %>' />
+      <h3><%= status.user.screen_name %></h3>
+      <p><%= status.text %></p>
+      <p class="ui-li-aside"><%= (new Date(status.created_at)).format("dd日 hh:mm:ss") %></p>
+      <% if (status.thumbnail_pic) { %>
+        <p style="margin-top:6px;"><img src='<%= status.thumbnail_pic %>' /></p>
+      <% } %>
+      <div class="status-bottom">
+        <span>来自:<%= $(status.source)[0].text %></span>
+        <span class="status-bottom-right">转(<%= status.reposts_count %>)</span>
+        <span class="status-bottom-right">评(<%= status.comments_count %>)</span>
+      </div>
+    <% } %>
+</a>

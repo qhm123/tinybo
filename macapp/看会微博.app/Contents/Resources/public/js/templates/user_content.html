@@ -1,0 +1,28 @@
+<img src='<%= avatar_large %>' width="90px" />
+<h3><%= screen_name %></h3>
+<div>
+  <span>地址: </span><span><%= location %></span><br>
+  <span>介绍: </span><span><%= description %></span>
+</div>
+<hr>
+<div class="ui-grid-a">
+  <div class="ui-block-a">
+    <a href="#user/<%= id %>/friends" data-role="button">关注 <%= friends_count %></a>
+  </div>
+  <div class="ui-block-b">
+    <a href="#user/<%= id %>/followers" data-role="button">粉丝 <%= followers_count %></a>
+  </div>
+  <!--
+  <div class="ui-block-c">
+    <a href="#bi_followers" data-role="button">互粉 <%= bi_followers_count %></a>
+  </div>
+  -->
+</div>
+<div class="ui-grid-a">
+  <div class="ui-block-a">
+    <a href="#user/<%= id %>/statuses" data-role="button">微博 <%= statuses_count %></a>
+  </div>
+  <div class="ui-block-b">
+    <a id="btn_collection" href="#user/<%= id %>/collection" data-role="button">收藏 <%= favourites_count %></a>
+  </div>
+</div>
